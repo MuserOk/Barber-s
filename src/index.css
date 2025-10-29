@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow-x: hidden; /* evita scroll lateral si algo se desborda */
+}
+
+/* DEBUG VISUAL - solo para encontrar el problema */
+html {
+  outline: 2px solid red;
+}
+
+body {
+  outline: 2px solid orange;
+}
+
+#root {
+  outline: 2px solid green;
+}
+
+/* main {
+  outline: 2px solid blue;
+} */
+
+footer {
+  outline: 2px solid purple;
+}
