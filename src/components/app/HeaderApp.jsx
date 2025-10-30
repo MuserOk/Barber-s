@@ -1,6 +1,6 @@
 import { use } from "react";
-import BtnLogIn from "../header/btnLogIn"
-import Menu from "../header/menu"
+import BtnLogIn from "../header/BtnLogIn"
+import Menu from "../header/Menu"
 import { Link, useNavigate } from "react-router-dom";
 
 const menuItems = [

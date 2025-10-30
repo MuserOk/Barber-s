@@ -1,9 +1,9 @@
 
 import React from 'react'
 import Hero from '../components/app/hero'
-import Carousel from "../components/home/carousel"
-import Video from '../components/home/video'
-import Comments from '../components/home/comments'
+import Carousel from "../components/home/Carousel"
+import Video from '../components/home/Video'
+import Comments from '../components/home/Comments'
 import { useNavigate } from 'react-router-dom'
 
 export default function Home() {
