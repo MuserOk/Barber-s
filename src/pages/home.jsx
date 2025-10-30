@@ -1,7 +1,7 @@
 
 import React from 'react'
 import Hero from '../components/app/hero'
-import Carousel from '../components/home/carousel'
+import Carousel from "../components/home/carousel"
 import Video from '../components/home/video'
 import Comments from '../components/home/comments'
 import { useNavigate } from 'react-router-dom'
