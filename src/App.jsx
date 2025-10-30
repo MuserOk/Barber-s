@@ -6,6 +6,10 @@ import Header from "./components/app/HeaderApp";
 import FooterApp from "./components/app/FooterApp";
 import LogIn from "./pages/logIn";
 import UserPage from "./pages/userPage"
+import RegUser from "./pages/regUser";
+import RecPass from "./pages/recPass";
+import BarberPage from "./pages/barberPage";
+import AdmiPage from "./pages/admiPage"
 /* import AuthContext from "./context/AuthContext"; */
 
 
@@ -37,17 +41,16 @@ function App() {
       <div className="flex flex-col bg-[#1a1802] text-white">
         <Header />
         {/*HERO*/}
-        <section className='relative'>
-          <img className='opacity-60 m-auto w-full max-w-200 lg:max-h-86' src="https://img.freepik.com/fotos-premium/barber-shop-with-vintage-aesthetic-showcasing-the-history-and-tradition-of-the-shop_117038-13572.jpg" alt="foto de barbero y cliente" />
-          <h1 className='absolute top-1/2 animate-pulse  transform -translate-1/2 left-1/2 text-4xl font-medium'>
-            Brother´s
-          </h1>
-        </section>
-        <main  className='flex justify-start flex-col text-white lg:max-w-200 lg:m-auto'>
+
+        <main  className='flex justify-start flex-col text-white '>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/logIn" element={<LogIn />} />
             <Route path="/userPage" element={<UserPage />} />
+             <Route path="/regUser" element={<RegUser />} />
+             <Route path="/recPass" element={<RecPass />} />
+             <Route path="/barberPage" element={<BarberPage />} />
+             <Route path="/admiPage" element={<AdmiPage />} />
             <Route path="/about" element={<About />} />
           </Routes>
         </main>

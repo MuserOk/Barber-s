@@ -18,17 +18,49 @@ export default function CardsTendencias() {
     return (
         <>
             {tendencias.map((corte) => (
-            <div key={corte.id} className="max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
-                    <img  className="rounded-t-lg object-cover object-center" src={corte.img} alt={corte.nombre} />
-                <div className="p-5 flex justify-around items-center">
-                    <span className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                        {corte.nombre}
-                    </span>
-                    <span className="mb-3 font-medium text-gray-100 dark:text-gray-100">
-                        Id:{corte.id}
-                    </span>
+                <div 
+                    key={corte.id} 
+                    className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group min-w-[246px] max-w-[280px]"
+                >
+                    {/* Imagen con efecto hover */}
+                    <div className="relative overflow-hidden">
+                        <img 
+                            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300" 
+                            src={corte.img} 
+                            alt={`Corte de tendencia ${corte.nombre}`} 
+                        />
+                        {/* Badge de tendencia */}
+                        <div className="absolute top-3 right-3">
+                            <span className="bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                🔥 TENDENCIA
+                            </span>
+                        </div>
+                        {/* Overlay en hover */}
+                        <div className="absolute inset-0  md:bg-black/80 bg-opacity-0 group-hover:bg-black/10 transition-all duration-300" />
+                    </div>
+                    
+                    {/* Contenido de la tarjeta */}
+                    <div className="p-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-xl font-bold text-gray-800 truncate">
+                                {corte.nombre}
+                            </h3>
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                #{corte.id.toString().padStart(2, '0')}
+                            </span>
+                        </div>
+                        
+                        {/* Botón de acción */}
+                        <div className="flex justify-between items-center mt-4">
+                            <button className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-2">
+                                Lo quiero
+                            </button>
+                            <button className="text-gray-400 hover:text-amber-500 transition-colors duration-200">
+                                ❤️
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
             ))}
         </>
     )

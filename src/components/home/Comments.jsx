@@ -29,7 +29,7 @@ export default function Comments() {
   }, [comments.length]);
 
   return (
-    <div className="max-w-xl mx-4 p-6 bg-white rounded-2xl shadow-lg max-h-40 mt-4">
+    <div className="max-w-xl mx-4 p-2 bg-white rounded-2xl shadow-lg max-h-44 mt-4">
       <div className="flex items-center space-x-4 transition-all duration-500 ease-in-out">
         {/* Foto */}
         <img

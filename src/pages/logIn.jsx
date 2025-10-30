@@ -68,7 +68,8 @@ export default function LogIn() {
             onClick={handleRegUser}
             className="w-full  text-white py-2 px-4 rounded transition"
           >
-            ¿ Eres Nuevo ? <span className="text-orange-900 font-medium cursor-pointer hover:text-orange-700 active:text-orange-800">Crea un usuario gratis!</span> 
+            <p>¿ Eres Nuevo ?</p>
+             <p className="text-orange-900 font-medium cursor-pointer hover:text-orange-700 active:text-orange-800">Crea un usuario gratis!</p> 
           </button>
         </div>
       </div>

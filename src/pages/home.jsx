@@ -1,12 +1,27 @@
 
 import React from 'react'
-import Carousel from '../components/home/Carousel'
-import Video from '../components/home/Video'
-import Comments from '../components/home/Comments'
+import Hero from '../components/app/hero'
+import Carousel from '../components/home/carousel'
+import Video from '../components/home/video'
+import Comments from '../components/home/comments'
+import { useNavigate } from 'react-router-dom'
 
 export default function Home() {
+  const navigate = useNavigate();
+
+   // registrarse como nuevo usaurio
+  const handleRegUser = () => {
+    navigate("/regUser");
+  };
+
+   // reservar turno (login)
+  const handleLogin = () => {
+    navigate("/logIn");
+  };
+
   return (
     <div>
+      <Hero />
       {/*SOBRE NOSOTROS*/}
       <section className='px-4 py-8 text-sm text-center flex flex-col gap-6'>
         <p className='px-8'>Somos una barbería con actitud, donde la buena onda y la atención personalizada son parte del servicio.
@@ -25,7 +40,14 @@ export default function Home() {
       </section>
       {/*BTN Y COMENTARIOS*/}
       <section className='flex flex-col justify-center items-center py-4'>
-        <button className='bg-amber-700 px-2 mx-auto py-1 mb-8 rounded hover:bg-amber-500 active:bg-amber-600'>Reservá tu Turno</button>
+        <button onClick={handleLogin} className='bg-amber-700 px-2 lg:py-2 sm:text-lg md:text-2xl lg:text-4xl mx-auto py-1 mb-8 rounded hover:bg-amber-500 active:bg-amber-600'>
+          Reservá tu Turno
+        </button>
+        <h6 className='md:text-xl lg:text-3xl'>¿Nuevo aquí?</h6>
+        <p className='text-center text-xs p-2 md:text-sm lg:text-lg lg:py-4'>Regístrate como cliente y comienza a acumular beneficios</p>
+        <button onClick={handleRegUser} className='bg-green-800 py-1 lg:mb-2 lg:py-2 px-2 sm:text-lg md:text-2xl lg:text-4xl rounded hover:bg-green-600 active:bg-green-700 shadow-2xs'>
+          Registrarse
+          </button>
         < Comments />
       </section>
     </div>

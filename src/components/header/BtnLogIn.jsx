@@ -18,11 +18,10 @@ export default function BtnLogIn() {
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className="cursor-pointer text-xs bg-gray-900 hover:bg-gray-700 active:bg-gray-800 px-2 py-1 rounded w-full text-white text-center"
-    >
+    <div onClick={handleClick}>
+      <div className=" text-xs sm:text-sm md:text-[1rem] lg:text-[2rem] bg-gray-900 hover:bg-gray-700 active:bg-gray-800 px-2 py-1 lg:py-3 lg:px-6 inline-block  rounded">
       {!user ? "Iniciar Sesión" : "Cerrar Sesión"}
+      </div>
     </div>
   );
 }
