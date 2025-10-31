@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+# datos pesados o sencibles
+/server/node_modules/
+/server/.env
 
 # Editor directories and files
 .vscode/*
