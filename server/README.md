@@ -9,7 +9,7 @@ El servidor expone las siguientes rutas principales:
 
 | Ruta | Método | Descripción | Uso en el Frontend |
 | :--- | :--- | :--- | :--- |
-| `/api/auth/register` | `POST` | Registra un nuevo usuario (Cliente). | `RegUser.jsx` |
+| `/api/auth/register` | `POST` | Registra un nuevo usuario (Cliente) (admin ó barbero). | `RegUser.jsx` |
 | `/api/auth/login` | `POST` | Autentica al usuario y devuelve un JWT. | `LogIn.jsx` |
 | `/api/turnos` | `POST` | Crea una nueva reserva de turno. | `FormTurno.jsx` |
 | `/api/tendencias` | `GET` | Obtiene la lista de tendencias de corte. | `CardsTendencias.jsx` |

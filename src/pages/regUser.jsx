@@ -1,8 +1,15 @@
 import { useState } from 'react';
-import React from 'react'
+import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useApi } from '../hooks/useApi'; // <--- Importar el Custom Hook
 
-
+// El componente se llama FormRegUser en tu archivo, lo mantendremos así
 export default function FormRegUser() {
+  const navigate = useNavigate();
+  
+  // Usar el Custom Hook para la petición API
+  const { error, isLoading, execute } = useApi(); // <--- Añadir useApi
+
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -15,8 +22,6 @@ export default function FormRegUser() {
   });
 
   const [errors, setErrors] = useState({});
-
-
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -49,29 +54,48 @@ export default function FormRegUser() {
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
+    // **NUEVA VALIDACIÓN REQUERIDA**
+    if (!formData.terminos) newErrors.terminos = 'Debes aceptar los Términos y Condiciones.';
 
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => { // <--- Hacer la función asíncrona
     e.preventDefault();
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      // Aquí iría la lógica para enviar los datos al backend
-      console.log('Formulario enviado:', formData);
-      alert('¡Registro exitoso! Bienvenido a nuestra barbería.');
-      // Reset form
-      setFormData({
-        nombre: '',
-        email: '',
-        telefono: '',
-        password: '',
-        confirmPassword: '',
-        comoConociste: '',
-        terminos: false,
-        puntos: false
-      });
+      
+      // 1. Preparar los datos a enviar (solo los que el backend necesita)
+      const dataToSend = {
+        nombre: formData.nombre,
+        email: formData.email,
+        password: formData.password,
+        telefono: formData.telefono,
+        // El backend asignará el rol 'cliente' y los puntos iniciales
+      };
+
+      // 2. Ejecutar la petición POST al backend
+      const result = await execute('post', '/auth/register', dataToSend);
+
+      // 3. Manejar la respuesta
+      if (result.success) {
+        // Alerta de éxito (cumpliendo requisito de Alertas Personalizadas)
+        alert('✅ Registro exitoso. ¡Inicia sesión ahora!'); 
+        
+        // Resetear el formulario y navegar
+        setFormData({
+          nombre: '', email: '', telefono: '', password: '', confirmPassword: '',
+          comoConociste: '', terminos: false, puntos: false
+        });
+        navigate('/logIn'); // Navegar al login
+      } else {
+        // Alerta de error (cumpliendo requisito de Alertas Personalizadas)
+        // El error viene del backend (ej: "El email ya está registrado.")
+        alert(`❌ Error al registrar: ${result.error}`);
+        setErrors(prev => ({ ...prev, api: result.error })); // Opcional: mostrar error en el formulario
+      }
+
     } else {
       setErrors(newErrors);
     }
@@ -111,6 +135,7 @@ export default function FormRegUser() {
                       errors.nombre ? 'border-red-500' : 'border-stone-300'
                     }`}
                     placeholder="El Braian"
+                    disabled={isLoading} // <--- Deshabilitar durante la carga
                   />
                   {errors.nombre && (
                     <p className="text-red-500 text-sm mt-1">{errors.nombre}</p>
@@ -130,6 +155,7 @@ export default function FormRegUser() {
                       errors.email ? 'border-red-500' : 'border-stone-300'
                     }`}
                     placeholder="será tu usuario para ingresar"
+                    disabled={isLoading} // <--- Deshabilitar durante la carga
                   />
                   {errors.email && (
                     <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -149,6 +175,7 @@ export default function FormRegUser() {
                       errors.telefono ? 'border-red-500' : 'border-stone-300'
                     }`}
                     placeholder="Para notificaciones y recordatorios"
+                    disabled={isLoading} // <--- Deshabilitar durante la carga
                   />
                   {errors.telefono && (
                     <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>
@@ -178,6 +205,7 @@ export default function FormRegUser() {
                       errors.password ? 'border-red-500' : 'border-stone-300'
                     }`}
                     placeholder="Mínimo 8 caracteres"
+                    disabled={isLoading} // <--- Deshabilitar durante la carga
                   />
                   {errors.password && (
                     <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -197,6 +225,7 @@ export default function FormRegUser() {
                       errors.confirmPassword ? 'border-red-500' : 'border-stone-300'
                     }`}
                     placeholder="Repite tu contraseña"
+                    disabled={isLoading} // <--- Deshabilitar durante la carga
                   />
                   {errors.confirmPassword && (
                     <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
@@ -223,9 +252,10 @@ export default function FormRegUser() {
                       checked={formData.terminos}
                       onChange={handleChange}
                       className="mt-1 text-amber-500 focus:ring-amber-500"
+                      disabled={isLoading} // <--- Deshabilitar durante la carga
                     />
                     <span className="text-sm text-stone-700">
-                      Acepto los <a href="#" className="text-amber-600 hover:text-amber-700 underline">Términos del Servicio</a> y la <a href="#" className="text-amber-600 hover:text-amber-700 underline">Política de Privacidad</a>
+                      Acepto los <a href="#" className="text-amber-600 hover:text-amber-700 underline">Términos del Servicio</a> y la <a href="#" className="text-amber-600 hover:text-amber-700 underline">Política de Privacidad</a> <span className="text-amber-500">*</span>
                     </span>
                   </label>
                   {errors.terminos && (
@@ -243,6 +273,7 @@ export default function FormRegUser() {
                       checked={formData.puntos}
                       onChange={handleChange}
                       className="mt-1 text-amber-500 focus:ring-amber-500"
+                      disabled={isLoading} // <--- Deshabilitar durante la carga
                     />
                     <span className="text-sm text-stone-700">
                       <span className="font-semibold">¡Sí, acepto!</span> Deseo acumular Puntos Estilo, recibir beneficios exclusivos y que se guarden las fotos de mis últimos 4 cortes en mi perfil.
@@ -254,14 +285,23 @@ export default function FormRegUser() {
                 </div>
               </div>
             </div>
+            
+            {/* Mensaje de Error de API */}
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong className="font-bold">Error de Registro:</strong>
+                    <span className="block sm:inline"> {error}</span>
+                </div>
+            )}
 
             {/* Botón de envío */}
             <div className="pt-6">
               <button
                 type="submit"
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                disabled={isLoading} // <--- Deshabilitar durante la carga
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                REGISTRARME
+                {isLoading ? 'REGISTRANDO...' : 'REGISTRARME'}
               </button>
             </div>
 
@@ -294,5 +334,3 @@ export default function FormRegUser() {
     
   );
 };
-
-

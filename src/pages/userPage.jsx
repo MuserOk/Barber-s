@@ -1,12 +1,84 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import FormTurno from '../components/user/formTurno'
 import CardsTendencias from '../components/user/cardsTendencias'
 import Perfil from '../components/user/perfil'
 import Historial from '../components/user/historial'
+import { useApi } from '../hooks/useApi'
+
+
 
 export default function UserPage() {
   // Estado para controlar la pestaña activa
   const [activeTab, setActiveTab] = useState('tendencias')
+
+// Estados para los datos dinámicos
+  const [tendenciasData, setTendenciasData] = useState([]);
+  const [perfilData, setPerfilData] = useState(null);
+
+  // Usar useApi para las peticiones
+  const { isLoading: isTendenciasLoading, error: tendenciasError, execute: fetchTendencias } = useApi();
+  const { isLoading: isPerfilLoading, error: perfilError, execute: fetchPerfil } = useApi();
+
+    // Cargar datos al montar el componente
+  useEffect(() => {
+    // Cargar Tendencias
+    const loadTendencias = async () => {
+      const result = await fetchTendencias('get', '/user/tendencias');
+      if (result.success) {
+        setTendenciasData(result.data);
+      } else {
+        console.error("Error al cargar tendencias:", result.error);
+        // Aquí podrías mostrar una alerta al usuario
+      }
+    };
+
+    // Cargar Perfil
+    const loadPerfil = async () => {
+      const result = await fetchPerfil('get', '/user/perfil');
+      if (result.success) {
+        setPerfilData(result.data);
+      } else {
+        console.error("Error al cargar perfil:", result.error);
+        // Aquí podrías mostrar una alerta al usuario
+      }
+    };
+
+    loadTendencias();
+    loadPerfil();
+  }, [fetchTendencias, fetchPerfil]);
+
+
+  // Lógica de renderizado de contenido
+  const renderContent = () => {
+    if (activeTab === 'tendencias') {
+      if (isTendenciasLoading) return <p className="text-center text-gray-800">Cargando tendencias...</p>;
+      if (tendenciasError) return <p className="text-center text-red-600">Error: {tendenciasError}</p>;
+      
+      // Pasar los datos reales al componente CardsTendencias
+      return <CardsTendencias tendencias={tendenciasData} />; 
+    }
+
+    if (activeTab === 'perfil') {
+      if (isPerfilLoading) return <p className="text-center text-gray-800">Cargando perfil...</p>;
+      if (perfilError) return <p className="text-center text-red-600">Error: {perfilError}</p>;
+      if (!perfilData) return <p className="text-center text-gray-800">No se encontraron datos de perfil.</p>;
+
+      // Pasar los datos reales al componente Perfil
+      return <Perfil userData={perfilData} />; 
+    }
+
+       if (activeTab === 'nuevo') {
+      return <FormTurno />;
+    }
+
+    if (activeTab === 'historial') {
+      return <Historial />;
+    }
+    
+    return null;
+  };
+
+
 
   return (
     <>
@@ -34,29 +106,7 @@ export default function UserPage() {
 
       {/* 🔹 Contenido dinámico según la pestaña */}
       <div className="bg-gray-300 p-4 min-h-[400px]">
-        {activeTab === 'tendencias' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 place-items-center">
-            <CardsTendencias />
-          </div>
-        )}
-
-        {activeTab === 'perfil' && (
-          <div className="p-4 text-gray-800">
-            <Perfil/>
-          </div>
-        )}
-
-        {activeTab === 'nuevo' && (
-          <div className="p-4 md:max-w-[700px] md:m-auto">
-            <FormTurno />
-          </div>
-        )}
-
-        {activeTab === 'historial' && (
-          <div className=" text-gray-800">
-            <Historial/>
-          </div>
-        )}
+        {renderContent()}
       </div>
     </>
   )

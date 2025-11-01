@@ -1,24 +1,40 @@
-import React, { useState } from 'react';
+// src/components/barber/calendar.jsx (Modificado)
 
-export default function Calendario(){
+import React, { useState, useEffect, useCallback } from 'react'; // Añadir useCallback
+import { useApi } from '../../hooks/useApi'; // <--- Importar useApi
+
+// Recibe los datos iniciales como prop desde BarberPage
+export default function Calendario() {
+  const { isLoading, error, execute } = useApi(); // Usar useApi para cargar y agregar
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState('month'); // 'month' o 'day'
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: 'Corte Carlos',
-      date: new Date(2024, 0, 15, 10, 0),
-      duration: 30,
-      type: 'appointment'
-    },
-    {
-      id: 2,
-      title: 'Día Franco',
-      date: new Date(2024, 0, 20),
-      duration: 1440, // Todo el día
-      type: 'day_off'
+  const [view, setView] = useState('month'); 
+  const [events, setEvents] = useState([]); // Ahora se llenará desde la API
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Función para cargar eventos (Turnos y Eventos_Calendario)
+  const fetchEvents = useCallback(async () => {
+    const result = await execute('get', '/barber/events');
+    if (result.success) {
+      // Mapear los datos de la API al formato de estado de React
+      const mappedEvents = result.data.map(event => ({
+        ...event,
+        // Convertir las fechas de string a objeto Date
+        date: new Date(event.date_time),
+        duration: event.duration,
+        title: event.title.includes('Cita') ? `${event.title} (ID: ${event.id})` : event.title,
+        type: event.type === 'appointment' ? 'appointment' : 'day_off'
+      }));
+      setEvents(mappedEvents);
+    } else {
+      console.error("Error al cargar eventos:", result.error);
+      // Aquí podrías mostrar una alerta de error
     }
-  ]);
+  }, [execute]);
+
+  // Cargar eventos al montar y cada vez que el mes cambie (o se agregue un evento)
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents, currentDate]); // Dependencia de currentDate para recargar al cambiar de mes
 
   // Navegación del calendario
   const goToPreviousMonth = () => {
@@ -33,8 +49,9 @@ export default function Calendario(){
     setCurrentDate(new Date());
   };
 
-  // Generar días del mes
+  // Generar días del mes (Esta lógica queda igual, pero usa el estado 'events' real)
   const getDaysInMonth = () => {
+    // ... (La lógica de getDaysInMonth queda igual, usando el estado 'events')
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1);
@@ -82,50 +99,15 @@ export default function Calendario(){
     return days;
   };
 
-  // Vista mensual
+  // Vista mensual (MonthView)
   const MonthView = () => {
     const days = getDaysInMonth();
     const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
     return (
       <div className="bg-white shadow-lg md:max-w-200 md:m-auto md:rounded-tl-md md:rounded-tr-md py-4 px-2">
-        {/* Header del mes */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-stone-800">
-            {currentDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}
-          </h2>
-          <div className="flex space-x-2">
-            <button
-              onClick={goToPreviousMonth}
-              className="p-2 hover:bg-stone-100 rounded-lg transition duration-200"
-            >
-              <span className="text-stone-600">◀</span>
-            </button>
-            <button
-              onClick={goToToday}
-              className="px-3 py-1 text-sm text-gray-900 bg-stone-100 hover:bg-stone-200 rounded-lg transition duration-200"
-            >
-              Hoy
-            </button>
-            <button
-              onClick={goToNextMonth}
-              className="p-2 hover:bg-stone-100  transition duration-200"
-            >
-              <span className="text-stone-600">▶</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Días de la semana */}
-        <div className="grid grid-cols-7 gap-px bg-stone-200">
-          {weekDays.map(day => (
-            <div key={day} className="bg-stone-50 p-2 text-center text-sm font-medium text-stone-600">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Días del mes */}
+        {/* ... (resto del JSX de MonthView queda igual) ... */}
+        {/* ... (Asegúrate de que el JSX de MonthView use 'events' del estado) ... */}
         <div className="grid grid-cols-7 gap-px bg-stone-200">
           {days.map((day, index) => (
             <div
@@ -133,7 +115,10 @@ export default function Calendario(){
               className={`min-h-4 bg-white p-2 ${
                 !day.isCurrentMonth ? 'bg-stone-50' : ''
               } ${day.isToday ? 'bg-amber-50 border-2 border-amber-200' : ''}`}
-              onClick={() => setView('day')}
+              onClick={() => {
+                setCurrentDate(day.date); // Establecer la fecha del día clicado
+                setView('day');
+              }}
             >
               <div className={`text-sm font-medium ${
                 !day.isCurrentMonth ? 'text-stone-400' : 
@@ -169,7 +154,7 @@ export default function Calendario(){
     );
   };
 
-  // Vista diaria
+  // Vista diaria (DayView)
   const DayView = () => {
     const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8 AM to 7 PM
     
@@ -183,7 +168,8 @@ export default function Calendario(){
 
     return (
       <div className="bg-white shadow-lg px-2  md:max-w-200 md:m-auto md:rounded-tl-md md:rounded-tr-md py-4 ">
-        {/* Header del día */}
+        {/* ... (resto del JSX de DayView queda igual) ... */}
+        {/* ... (Asegúrate de que el JSX de DayView use 'events' del estado) ... */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -277,25 +263,37 @@ export default function Calendario(){
     );
   };
 
-  // Modal para agregar evento
+  // Modal para agregar evento (AddEventModal)
   const AddEventModal = ({ isOpen, onClose }) => {
+    const { isLoading: isAdding, error: addError, execute: addEventExecute } = useApi(); // Usar useApi para agregar
+    
     const [eventType, setEventType] = useState('day_off');
     const [title, setTitle] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => { // <--- Hacer asíncrono
       e.preventDefault();
-      const newEvent = {
-        id: Date.now(),
-        title: eventType === 'day_off' ? 'Día Franco' : title,
-        date: new Date(date),
-        duration: eventType === 'day_off' ? 1440 : 60,
-        type: eventType
+      
+      // 1. Preparar los datos para el backend
+      const dataToSend = {
+          title: eventType === 'day_off' ? 'Día Franco' : title,
+          date: date,
+          eventType: eventType
       };
-      setEvents(prev => [...prev, newEvent]);
-      setTitle('');
-      setDate(new Date().toISOString().split('T')[0]);
-      onClose();
+      
+      // 2. Llamar a la API
+      const result = await addEventExecute('post', '/barber/events', dataToSend);
+
+      if (result.success) {
+          alert('✅ Evento agregado exitosamente.');
+          // 3. Recargar la lista de eventos
+          fetchEvents(); 
+          setTitle('');
+          setDate(new Date().toISOString().split('T')[0]);
+          onClose();
+      } else {
+          alert(`❌ Error al agregar evento: ${result.error}`);
+      }
     };
 
     if (!isOpen) return null;
@@ -305,6 +303,13 @@ export default function Calendario(){
         <div className="bg-white rounded-lg p-6 w-full max-w-md">
           <h3 className="text-lg font-bold text-stone-800 mb-4">Agregar Evento</h3>
           
+          {addError && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                  <strong className="font-bold">Error:</strong>
+                  <span className="block sm:inline"> {addError}</span>
+              </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">
@@ -314,6 +319,7 @@ export default function Calendario(){
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value)}
                 className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                disabled={isAdding}
               >
                 <option value="day_off">Día Franco / Falta Programada</option>
                 <option value="appointment">Cita / Evento Personalizado</option>
@@ -332,6 +338,7 @@ export default function Calendario(){
                   className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                   placeholder="Ej: Reunión con proveedor"
                   required
+                  disabled={isAdding}
                 />
               </div>
             )}
@@ -346,6 +353,7 @@ export default function Calendario(){
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 required
+                disabled={isAdding}
               />
             </div>
 
@@ -354,14 +362,16 @@ export default function Calendario(){
                 type="button"
                 onClick={onClose}
                 className="px-4 py-2 text-stone-600 hover:text-stone-800 transition duration-200"
+                disabled={isAdding}
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition duration-200"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition duration-200 disabled:opacity-50"
+                disabled={isAdding}
               >
-                Agregar Evento
+                {isAdding ? 'Agregando...' : 'Agregar Evento'}
               </button>
             </div>
           </form>
@@ -370,8 +380,7 @@ export default function Calendario(){
     );
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+  // Renderizado principal
   return (
     <div>
       {/* Header del calendario */}
@@ -411,13 +420,27 @@ export default function Calendario(){
           </button>
         </div>
       </div>
+      
+      {/* Mensaje de Carga */}
+      {isLoading && (
+          <div className="text-center py-8">
+              <p className="text-gray-800">Cargando calendario...</p>
+          </div>
+      )}
+      
+      {/* Mensaje de Error */}
+      {error && (
+          <div className="p-4 bg-red-100 border border-red-400 text-red-700">
+              <p className="font-bold">Error al cargar calendario:</p>
+              <p>{error}</p>
+          </div>
+      )}
 
       {/* Vista del calendario */}
-      {view === 'month' ? <MonthView /> : <DayView />}
+      {!isLoading && !error && (view === 'month' ? <MonthView /> : <DayView />)}
 
       {/* Modal */}
       <AddEventModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
-

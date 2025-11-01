@@ -1,17 +1,45 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useApi } from '../hooks/useApi'; // <--- Importar useApi
+
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('dashboard')
 
-  // Datos de ejemplo para las métricas
-  const metricas = {
-    ingresosHoy: 1250,
-    citasHoy: 15,
-    clientesNuevos: 3,
-    ratingPromedio: 4.8,
-    productosStockBajo: 2
+  // Usar useApi para cargar las métricas
+  const { data: metricas, isLoading, error, execute } = useApi();
+
+   // Cargar métricas al montar el componente
+  useEffect(() => {
+    const loadMetrics = async () => {
+      // Llamar a la ruta del dashboard
+      await execute('get', '/admin/dashboard'); 
+    };
+    loadMetrics();
+  }, [execute]);
+
+ // 1. Manejo de Carga y Error
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-xl font-semibold text-gray-800">Cargando Dashboard...</p>
+      </div>
+    );
   }
 
+    if (error) {
+    return (
+      <div className="min-h-screen p-4 bg-red-100 border border-red-400 text-red-700">
+        <p className="font-bold">Error de Carga del Dashboard:</p>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  // Si no hay métricas (y no hubo error), puede ser un problema de datos
+  const dashboardData = metricas || {};
+
+
+  
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 🔹 Header del Admin */}
@@ -71,7 +99,7 @@ export default function AdminPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-600 text-sm">Ingresos Hoy</p>
-                    <p className="text-2xl font-bold text-gray-800">${metricas.ingresosHoy}</p>
+                    <p className="text-2xl font-bold text-gray-800">${dashboardData.ingresosHoy}</p> 
                   </div>
                   <div className="text-2xl text-green-500">
                     <svg fill="#37025a" height="28px" width="28px" version="1.1" id="Layer_1" viewBox="0 0 512 512" stroke="#37025a"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M263.802,304.683c-10.339-5.465-24.498-12.95-24.498-18.631c0-9.206,7.49-16.696,16.696-16.696 c9.206,0,16.696,7.49,16.696,16.696c0,9.22,7.475,16.696,16.696,16.696s16.696-7.475,16.696-16.696 c0-21.766-13.959-40.323-33.391-47.215V230.4c0-9.22-7.475-16.696-16.696-16.696c-9.22,0-16.696,7.475-16.696,16.696v8.437 c-19.433,6.892-33.391,25.45-33.391,47.215c0,25.8,23.445,38.193,42.285,48.151c10.339,5.465,24.498,12.95,24.498,18.631 c0,9.206-7.49,16.696-16.696,16.696c-9.206,0-16.696-7.49-16.696-16.696c0-9.22-7.475-16.696-16.696-16.696 s-16.696,7.475-16.696,16.696c0,21.766,13.959,40.323,33.391,47.215v8.437c0,9.22,7.475,16.696,16.696,16.696 c9.22,0,16.696-7.475,16.696-16.696v-8.437c19.433-6.892,33.391-25.45,33.391-47.215 C306.087,327.034,282.642,314.642,263.802,304.683z"></path> </g> </g> <g> <g> <path d="M155.826,369.53h-55.652V269.357h55.652c9.22,0,16.696-7.475,16.696-16.696c0-9.22-7.475-16.696-16.696-16.696H83.478 c-9.22,0-16.696,7.475-16.696,16.696v133.565c0,9.22,7.475,16.696,16.696,16.696h72.348c9.22,0,16.696-7.475,16.696-16.696 S165.047,369.53,155.826,369.53z"></path> </g> </g> <g> <g> <path d="M428.522,235.965h-72.348c-9.22,0-16.696,7.475-16.696,16.696c0,9.22,7.475,16.696,16.696,16.696h55.652V369.53h-55.652 c-9.22,0-16.696,7.475-16.696,16.696s7.475,16.696,16.696,16.696h72.348c9.22,0,16.696-7.475,16.696-16.696V252.661 C445.217,243.44,437.742,235.965,428.522,235.965z"></path> </g> </g> <g> <g> <path d="M461.913,38.957H50.087C22.469,38.957,0,61.426,0,89.044c0,4.754,0,327.745,0,333.913 c0,27.618,22.469,50.087,50.087,50.087h411.826c27.618,0,50.087-22.469,50.087-50.087c0-13.605,0-320.13,0-333.913 C512,61.426,489.531,38.957,461.913,38.957z M478.609,422.957c0,9.206-7.49,16.696-16.696,16.696H50.087 c-9.206,0-16.696-7.49-16.696-16.696c0-10.246,0-196.041,0-205.913c0-9.206,7.49-16.696,16.696-16.696h411.826 c9.206,0,16.696,7.49,16.696,16.696C478.609,226.933,478.609,412.832,478.609,422.957z M478.609,169.828 c-5.226-1.853-10.843-2.872-16.696-2.872H50.087c-5.852,0-11.47,1.018-16.696,2.872v-14.002c0-9.206,7.49-16.696,16.696-16.696 h411.826c9.206,0,16.696,7.49,16.696,16.696V169.828z M478.609,108.611c-5.226-1.853-10.843-2.872-16.696-2.872H50.087 c-5.852,0-11.47,1.018-16.696,2.872V89.044c0-9.206,7.49-16.696,16.696-16.696h411.826c9.206,0,16.696,7.49,16.696,16.696V108.611 z"></path> </g> </g> </g></svg>
@@ -84,34 +112,34 @@ export default function AdminPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-600 text-sm">Citas Hoy</p>
-                    <p className="text-2xl font-bold text-gray-800">{metricas.citasHoy}</p>
+                    <p className="text-2xl font-bold text-gray-800">{dashboardData.citasHoy}</p>
                   </div>
                   <div className="text-2xl text-blue-500">
                     <svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 64 64" enableBackground="new 0 0 64 64" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path fill="#331263" d="M60,4h-7V3c0-1.657-1.343-3-3-3s-3,1.343-3,3v1H17V3c0-1.657-1.343-3-3-3s-3,1.343-3,3v1H4 C1.789,4,0,5.789,0,8v52c0,2.211,1.789,4,4,4h56c2.211,0,4-1.789,4-4V8C64,5.789,62.211,4,60,4z M18,53c0,0.553-0.447,1-1,1h-6 c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V53z M18,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5 c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M18,31c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6 c0.553,0,1,0.447,1,1V31z M30,53c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V53z M30,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M30,31 c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V31z M42,53c0,0.553-0.447,1-1,1h-6 c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V53z M42,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5 c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M42,31c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6 c0.553,0,1,0.447,1,1V31z M54,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M54,31c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V31z M62,15H2V8 c0-1.104,0.896-2,2-2h7v4c0,1.657,1.343,3,3,3s3-1.343,3-3V6h30v4c0,1.657,1.343,3,3,3s3-1.343,3-3V6h7c1.104,0,2,0.896,2,2V15z"></path> </g> </g></svg>
 
                   </div>
                 </div>
-                <p className="text-blue-600 text-sm mt-2">{metricas.citasHoy - 2} completadas</p>
+                <p className="text-blue-600 text-sm mt-2">{dashboardData.citasHoy - 2} completadas</p>
               </div>
 
               <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-purple-500">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-600 text-sm">Clientes Nuevos</p>
-                    <p className="text-2xl font-bold text-gray-800">{metricas.clientesNuevos}</p>
+                    <p className="text-2xl font-bold text-gray-800">{dashboardData.clientesNuevos}</p>
                   </div>
                   <div className="text-2xl text-purple-500">
                     <svg width="28px" height="28px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M512 505.6c-108.8 0-204.8-89.6-204.8-204.8S396.8 102.4 512 102.4c108.8 0 204.8 89.6 204.8 204.8S620.8 505.6 512 505.6z m0-358.4c-83.2 0-153.6 70.4-153.6 153.6s64 153.6 153.6 153.6 153.6-70.4 153.6-153.6S595.2 147.2 512 147.2z" fill="#310665"></path><path d="M832 864c0-211.2-147.2-377.6-326.4-377.6s-326.4 166.4-326.4 377.6H832z" fill="#2a2730"></path><path d="M832 889.6H147.2v-25.6c0-224 160-403.2 352-403.2s352 179.2 352 396.8v25.6l-19.2 6.4z m-633.6-51.2h608C800 659.2 665.6 512 505.6 512c-166.4 0-294.4 147.2-307.2 326.4zM710.4 499.2c-12.8 0-25.6-12.8-25.6-25.6s12.8-25.6 25.6-25.6c64 0 121.6-51.2 121.6-121.6 0-51.2-32-96-83.2-115.2-12.8-6.4-19.2-19.2-12.8-32 6.4-12.8 19.2-19.2 32-12.8 70.4 19.2 115.2 83.2 115.2 160-6.4 96-83.2 172.8-172.8 172.8z" fill="#310665"></path><path d="M966.4 806.4h-57.6c-12.8 0-25.6-12.8-25.6-25.6s12.8-25.6 25.6-25.6h32c-12.8-140.8-115.2-249.6-236.8-249.6-12.8 0-25.6-12.8-25.6-25.6s12.8-25.6 25.6-25.6c160 0 288 147.2 288 326.4v25.6h-25.6z" fill="#310665"></path><path d="M300.8 499.2c-6.4 0-6.4 0 0 0-44.8 0-89.6-12.8-121.6-44.8-32-32-44.8-76.8-44.8-121.6 0-70.4 44.8-134.4 115.2-160 12.8-6.4 25.6 0 32 12.8 6.4 12.8 0 25.6-12.8 32-57.6 19.2-89.6 64-89.6 115.2 0 32 12.8 64 32 83.2 19.2 25.6 51.2 32 83.2 38.4 19.2 0 25.6 12.8 25.6 25.6s-6.4 19.2-19.2 19.2z" fill="#310665"></path><path d="M89.6 806.4H12.8v-25.6c0-179.2 128-320 288-320 12.8 0 25.6 12.8 25.6 25.6s-12.8 25.6-25.6 25.6C179.2 512 76.8 620.8 64 761.6h32c12.8 0 25.6 12.8 25.6 25.6-6.4 6.4-12.8 19.2-32 19.2z" fill="#310665"></path></g></svg>
                   </div>
                 </div>
-                <p className="text-purple-600 text-sm mt-2">Este mes: 24</p>
+                <p className="text-purple-600 text-sm mt-2">Este mes: {dashboardData.clientesNuevos}</p>
               </div>
 
               <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-amber-500">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-600 text-sm">Rating Promedio</p>
-                    <p className="text-2xl font-bold text-gray-800">{metricas.ratingPromedio}/5</p>
+                    <p className="text-2xl font-bold text-gray-800">{dashboardData.ratingPromedio}/5</p>
                   </div>
                   <div className="text-2xl text-amber-500">
                     <svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" width="28px" height="28px" viewBox="0 0 64 64" enableBackground="new 0 0 64 64" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path fill="#f7f7f7" d="M31.998,2.478c0.279,0,0.463,0.509,0.463,0.509l8.806,18.759l20.729,3.167l-14.999,15.38l3.541,21.701 l-18.54-10.254l-18.54,10.254l3.541-21.701L2,24.912l20.729-3.167l8.798-18.743C31.527,3.002,31.719,2.478,31.998,2.478 M31.998,0 c-0.775,0-1.48,0.448-1.811,1.15l-8.815,18.778L1.698,22.935c-0.741,0.113-1.356,0.632-1.595,1.343 c-0.238,0.71-0.059,1.494,0.465,2.031l14.294,14.657L11.484,61.67c-0.124,0.756,0.195,1.517,0.822,1.957 c0.344,0.243,0.747,0.366,1.151,0.366c0.332,0,0.666-0.084,0.968-0.25l17.572-9.719l17.572,9.719 c0.302,0.166,0.636,0.25,0.968,0.25c0.404,0,0.808-0.123,1.151-0.366c0.627-0.44,0.946-1.201,0.822-1.957l-3.378-20.704 l14.294-14.657c0.523-0.537,0.703-1.321,0.465-2.031c-0.238-0.711-0.854-1.229-1.595-1.343l-19.674-3.006L33.809,1.15 C33.479,0.448,32.773,0,31.998,0L31.998,0z"></path> <path fill="#f5c400" d="M31.998,2.478c0.279,0,0.463,0.509,0.463,0.509l8.806,18.759l20.729,3.167l-14.999,15.38l3.541,21.701 l-18.54-10.254l-18.54,10.254l3.541-21.701L2,24.912l20.729-3.167l8.798-18.743C31.527,3.002,31.719,2.478,31.998,2.478"></path> </g> </g></svg>
@@ -124,7 +152,7 @@ export default function AdminPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-600 text-sm">Stock Bajo</p>
-                    <p className="text-2xl font-bold text-gray-800">{metricas.productosStockBajo}</p>
+                    <p className="text-2xl font-bold text-gray-800">{dashboardData.productosStockBajo}</p>
                   </div>
                   <div className="text-2xl text-red-500">
                     <svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fillRule="evenodd" clipRule="evenodd" d="M13.0618 4.4295C12.6211 3.54786 11.3635 3.54786 10.9228 4.4295L3.88996 18.5006C3.49244 19.2959 4.07057 20.2317 4.95945 20.2317H19.0252C19.914 20.2317 20.4922 19.2959 20.0947 18.5006L13.0618 4.4295ZM9.34184 3.6387C10.4339 1.45376 13.5507 1.45377 14.6428 3.63871L21.6756 17.7098C22.6608 19.6809 21.228 22 19.0252 22H4.95945C2.75657 22 1.32382 19.6809 2.30898 17.7098L9.34184 3.6387Z" fill="#f19c09"></path> <path d="M12 8V13" stroke="#f19c09" strokeWidth="1.7" strokeLinecap="round"></path> <path d="M12 16L12 16.5" stroke="#f19c09" strokeWidth="1.7" strokeLinecap="round"></path> </g></svg>
@@ -140,15 +168,18 @@ export default function AdminPage() {
               <div className="bg-gray-500 rounded-xl shadow-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-100 mb-4">Citas de Hoy</h3>
                 <div className="space-y-3">
-                  {[1, 2, 3].map((item) => (
+                  {dashboardData.citasHoyDetalle?.map((cita, index) => (
                     <div key={item} className="flex justify-between items-center p-3 bg-gray-400 rounded-lg">
                       <div>
-                        <p className="font-medium">Carlos Mendoza</p>
-                        <p className="text-sm text-gray-600">10:30 AM - Corte Clásico</p>
+                        <p className="font-medium">{cita.cliente}</p>
+                        <p className="text-sm text-gray-600">{new Date(cita.fecha_hora_inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {cita.servicio}</p>
                       </div>
                       <span className="bg-white text-gray-800 text-xs px-2 py-1 rounded">Confirmada</span>
                     </div>
                   ))}
+                {dashboardData.citasHoyDetalle?.length === 0 && (
+                      <p className="text-gray-600 text-center">No hay citas confirmadas para hoy.</p>
+                  )}
                 </div>
               </div>
 
@@ -156,21 +187,17 @@ export default function AdminPage() {
               <div className="bg-gray-500 rounded-xl shadow-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">💈 Barberos Activos</h3>
                 <div className="space-y-3 text-gray-700">
-                  {[
-                    { nombre: 'Jaimito', clientes: 3, estado: 'Activo' },
-                    { nombre: 'Pepito', clientes: 2, estado: 'Activo' },
-                    { nombre: 'Fulanito', clientes: 0, estado: 'Disponible' }
-                  ].map((barbero, index) => (
+                   {dashboardData.barberosActivos?.map((barbero, index) => (
                     <div key={index} className="flex justify-between items-center">
                       <span className="font-medium">{barbero.nombre}</span>
                       <div className="text-right">
-                        <span className={`text-xs px-2 py-1 rounded ${barbero.estado === 'Activo'
+                        <span className={`text-xs px-2 py-1 rounded ${barbero.rating > 4.5
                             ? 'bg-green-100 text-green-800'
                             : 'bg-blue-100 text-blue-800'
                           }`}>
-                          {barbero.estado}
+                          Rating: {barbero.rating}
                         </span>
-                        <p className="text-sm text-gray-800">{barbero.clientes} clientes</p>
+                        <p className="text-sm text-gray-800">Disponible</p>
                       </div>
                     </div>
                   ))}

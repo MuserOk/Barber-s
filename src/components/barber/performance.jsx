@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react'
+// src/components/barber/performance.jsx (Modificado)
 
-export default function Performance() {
-  // Estados para los datos que vendrán de la base de datos
+import React, { useState, useEffect, useCallback } from 'react'
+import { useApi } from '../../hooks/useApi' // <--- Importar useApi
+
+// Recibe los datos iniciales como prop desde BarberPage
+export default function Performance({ barberData }) {
+  const { isLoading: isMetricsLoading, error: metricsError, execute: fetchMetrics } = useApi();
+  const { isLoading: isClocking, error: clockError, execute: clockExecute } = useApi();
+  
   const [performanceData, setPerformanceData] = useState({
     diasTrabajados: 0,
     horasTotales: 0,
@@ -12,21 +18,23 @@ export default function Performance() {
   })
 
   const [isClockedIn, setIsClockedIn] = useState(false)
+  const [clockInTime, setClockInTime] = useState(null); // Hora de entrada
   const [currentTime, setCurrentTime] = useState(new Date())
 
-  // Simular datos de la base de datos (en el futuro vendrán de una API)
-  useEffect(() => {
-    // Esto será reemplazado por una llamada a la API
-    const mockData = {
-      diasTrabajados: 18,
-      horasTotales: 144,
-      sueldoMensual: 1800,
-      horasExtras: 12,
-      clientesAtendidos: 156,
-      propinas: 320
+  // Función para cargar las métricas
+  const loadPerformanceMetrics = useCallback(async () => {
+    const result = await fetchMetrics('get', '/barber/performance');
+    if (result.success) {
+      setPerformanceData(result.data);
+      setIsClockedIn(result.data.isClockedIn);
+      setClockInTime(result.data.clockInTime ? new Date(result.data.clockInTime) : null);
     }
-    setPerformanceData(mockData)
-  }, [])
+  }, [fetchMetrics]);
+
+  // Cargar métricas al inicio
+  useEffect(() => {
+    loadPerformanceMetrics();
+  }, [loadPerformanceMetrics]);
 
   // Actualizar la hora actual cada minuto
   useEffect(() => {
@@ -36,10 +44,26 @@ export default function Performance() {
     return () => clearInterval(timer)
   }, [])
 
-  const handleClockInOut = () => {
-    setIsClockedIn(!isClockedIn)
-    // Aquí se enviaría a la base de datos el registro de entrada/salida
-    console.log(isClockedIn ? 'Registro de salida' : 'Registro de entrada')
+  // Lógica de Clock In/Out
+  const handleClockInOut = async () => {
+    const endpoint = isClockedIn ? '/barber/clock-out' : '/barber/clock-in';
+    const result = await clockExecute('post', endpoint);
+
+    if (result.success) {
+      alert(result.data.message);
+      setIsClockedIn(!isClockedIn);
+      
+      // Si es entrada, guardar la hora actual
+      if (!isClockedIn) {
+        setClockInTime(new Date());
+      } else {
+        setClockInTime(null);
+        // Recargar métricas para ver el cambio en horas trabajadas
+        loadPerformanceMetrics(); 
+      }
+    } else {
+      alert(`❌ Error: ${result.error}`);
+    }
   }
 
   // Calcular métricas adicionales
@@ -50,6 +74,15 @@ export default function Performance() {
   const promedioPropinasPorCliente = performanceData.clientesAtendidos > 0
     ? (performanceData.propinas / performanceData.clientesAtendidos).toFixed(2)
     : 0
+    
+  // Manejo de carga y error
+  if (isMetricsLoading) {
+      return <div className="p-4 text-center text-gray-800">Cargando métricas de rendimiento...</div>;
+  }
+  if (metricsError) {
+      return <div className="p-4 bg-red-100 text-red-700">Error al cargar métricas: {metricsError}</div>;
+  }
+
 
   return (
     <div className="p-2 max-w-200 mx-auto">
@@ -76,21 +109,25 @@ export default function Performance() {
           </div>
           <button
             onClick={handleClockInOut}
-            className={`px-2 py-1 rounded-lg font-semibold text-white transition-all duration-300 ${
+            disabled={isClocking}
+            className={`px-2 py-1 rounded-lg font-semibold text-white transition-all duration-300 disabled:opacity-50 ${
               isClockedIn 
                 ? 'bg-red-500 hover:bg-red-600' 
                 : 'bg-green-500 hover:bg-green-600'
             }`}
           >
-            {isClockedIn ? '🔴 Marcar Salida' : '🟢 Marcar Entrada'}
+            {isClocking ? 'Procesando...' : isClockedIn ? '🔴 Marcar Salida' : '🟢 Marcar Entrada'}
           </button>
         </div>
-        {isClockedIn && (
+        {clockInTime && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-700 font-medium">
-              Registrado desde: {currentTime.toLocaleTimeString('es-ES')}
+              Registrado desde: {clockInTime.toLocaleTimeString('es-ES')}
             </p>
           </div>
+        )}
+        {clockError && (
+            <p className="text-red-500 text-sm mt-2">Error de registro: {clockError}</p>
         )}
       </div>
 

@@ -1,47 +1,40 @@
-import React, { useState } from 'react'
+// src/components/user/historial.jsx (Modificado)
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { useApi } from '../../hooks/useApi'; // <--- Importar useApi
 
 export default function Historial() {
-  const [historial, setHistorial] = useState([
-    {
-      id: 1,
-      fecha: '2024-01-15',
-      barbero: 'Jaimito',
-      servicio: 'Corte Fade + Barba',
-      precio: 45,
-      rating: 5,
-      fotos: [
-        'https://i.pinimg.com/736x/a3/db/29/a3db298d9e26e12a38268be8555fd21d.jpg',
-        'https://i.pinimg.com/736x/4f/25/79/4f25797b294758d8f4ebce7c3eabdd08.jpg'
-      ],
-      notas: 'Cliente satisfecho con el degradado'
-    },
-    {
-      id: 2,
-      fecha: '2024-01-08',
-      barbero: 'Pepito',
-      servicio: 'Corte Clásico',
-      precio: 30,
-      rating: 4,
-      fotos: [
-        'https://storage.googleapis.com/belity_web_images/blog/tendencias-corte-barberia-6.jpeg'
-      ],
-      notas: 'Corte tradicional bien ejecutado'
-    },
-    {
-      id: 3,
-      fecha: '2023-12-20',
-      barbero: 'Fulanito',
-      servicio: 'Afeitado Clásico',
-      precio: 25,
-      rating: 5,
-      fotos: [
-        'https://i.pinimg.com/originals/e1/58/ac/e158ac1abb00f555135825d26cde2c44.jpg'
-      ],
-      notas: 'Afeitado perfecto, sin irritaciones'
-    }
-  ])
-
+  const { data: historial, isLoading, error, execute } = useApi(); // <--- Usar useApi
   const [fotoSeleccionada, setFotoSeleccionada] = useState(null)
+
+  // Función para cargar el historial
+  const fetchHistorial = useCallback(async () => {
+      await execute('get', '/user/historial');
+  }, [execute]);
+
+  // Cargar historial al montar
+  useEffect(() => {
+      fetchHistorial();
+  }, [fetchHistorial]);
+
+  // ----------------------------------------------------------------
+  // Lógica de Estadísticas (Usando useMemo para eficiencia)
+  // ----------------------------------------------------------------
+  const stats = useMemo(() => {
+    if (!historial || historial.length === 0) {
+      return { totalCortes: 0, mejorRating: 0, barberosDiferentes: 0, totalInvertido: 0 };
+    }
+
+    const totalCortes = historial.length;
+    const ratings = historial.map(c => c.rating).filter(r => r !== null);
+    const mejorRating = ratings.length > 0 ? Math.max(...ratings) : 0;
+    const barberos = [...new Set(historial.map(c => c.barbero))];
+    const barberosDiferentes = barberos.length;
+    const totalInvertido = historial.reduce((sum, c) => sum + parseFloat(c.precio), 0).toFixed(2);
+
+    return { totalCortes, mejorRating, barberosDiferentes, totalInvertido };
+  }, [historial]);
+  // ----------------------------------------------------------------
 
   const compartirEnRedes = (corte) => {
     const texto = `¡Mi nuevo corte en la barbería! Realizado por ${corte.barbero}. ${corte.servicio} 💈`;
@@ -80,6 +73,40 @@ export default function Historial() {
   const cerrarModalFoto = () => {
     setFotoSeleccionada(null)
   }
+  
+  // Manejo de Carga y Error
+  if (isLoading) {
+      return (
+          <div className="text-center py-12 text-gray-800">
+              <p className="text-xl font-semibold">Cargando historial de cortes...</p>
+          </div>
+      );
+  }
+  
+  if (error) {
+      return (
+          <div className="p-4 bg-red-100 border border-red-400 text-red-700">
+              <p className="font-bold">Error al cargar historial:</p>
+              <p>{error}</p>
+          </div>
+      );
+  }
+  
+  // Mensaje si no hay historial
+  if (!historial || historial.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-800">
+        <div className="text-6xl mb-4">💈</div>
+        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          Aún no tienes cortes registrados
+        </h3>
+        <p className="text-gray-500">
+          Agenda tu primera cita y aparecerá aquí tu historial
+        </p>
+      </div>
+    );
+  }
+
 
   return (
     <>
@@ -92,24 +119,24 @@ export default function Historial() {
         {/* Estadísticas rápidas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow p-4 text-center">
-            <div className="text-2xl font-bold text-amber-600">{historial.length}</div>
+            <div className="text-2xl font-bold text-amber-600">{stats.totalCortes}</div>
             <div className="text-sm text-gray-600">Total Cortes</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4 text-center">
             <div className="text-2xl font-bold text-amber-600">
-              {Math.max(...historial.map(c => c.rating))}/5
+              {stats.mejorRating}/5
             </div>
             <div className="text-sm text-gray-600">Mejor Rating</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4 text-center">
             <div className="text-2xl font-bold text-amber-600">
-              {[...new Set(historial.map(c => c.barbero))].length}
+              {stats.barberosDiferentes}
             </div>
             <div className="text-sm text-gray-600">Barberos Diferentes</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4 text-center">
             <div className="text-2xl font-bold text-amber-600">
-              ${historial.reduce((sum, c) => sum + c.precio, 0)}
+              ${stats.totalInvertido}
             </div>
             <div className="text-sm text-gray-600">Total Invertido</div>
           </div>

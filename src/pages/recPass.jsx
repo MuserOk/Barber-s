@@ -1,7 +1,13 @@
-import { useState } from 'react';
+// src/pages/RecPass.jsx (Modificado)
 
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useApi } from '../hooks/useApi'; // <--- Importar useApi
 
 export default function RecPass(){
+  const navigate = useNavigate();
+  const { error, isLoading, execute } = useApi(); // <--- Usar useApi
+
   const [step, setStep] = useState(1); // 1: Email, 2: Código, 3: Nueva contraseña
   const [formData, setFormData] = useState({
     email: '',
@@ -10,7 +16,8 @@ export default function RecPass(){
     confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  // Eliminamos el estado isLoading local, usaremos el del hook
+  // const [isLoading, setIsLoading] = useState(false); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,6 +34,8 @@ export default function RecPass(){
       }));
     }
   };
+
+  // ... (validateStep1, validateStep2, validateStep3 quedan iguales)
 
   const validateStep1 = () => {
     const newErrors = {};
@@ -63,55 +72,84 @@ export default function RecPass(){
     return newErrors;
   };
 
+  // Lógica real para el Paso 1
   const handleSubmitEmail = async (e) => {
     e.preventDefault();
     const newErrors = validateStep1();
     
     if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      // Simular envío de código
-      setTimeout(() => {
-        setIsLoading(false);
+      
+      const result = await execute('post', '/auth/request-password-reset', { email: formData.email });
+
+      if (result.success) {
         setStep(2);
-        alert(`Se ha enviado un código de recuperación a: ${formData.email}`);
-      }, 1500);
+        alert(`✅ ${result.data.message} Revisa tu consola para el código simulado.`);
+      } else {
+        // Mostrar error de API
+        setErrors(prev => ({ ...prev, api: result.error }));
+      }
     } else {
       setErrors(newErrors);
     }
   };
 
-  const handleSubmitCode = (e) => {
+  // Lógica real para el Paso 2
+  const handleSubmitCode = async (e) => {
     e.preventDefault();
     const newErrors = validateStep2();
     
     if (Object.keys(newErrors).length === 0) {
-      // Aquí verificarías el código con el backend
-      setStep(3);
+      
+      const result = await execute('post', '/auth/verify-code', { 
+        email: formData.email, 
+        recoveryCode: formData.recoveryCode 
+      });
+
+      if (result.success) {
+        setStep(3);
+        alert('✅ Código verificado. Procede a cambiar tu contraseña.');
+      } else {
+        // Mostrar error de API
+        setErrors(prev => ({ ...prev, api: result.error, recoveryCode: result.error }));
+      }
     } else {
       setErrors(newErrors);
     }
   };
 
-  const handleSubmitNewPassword = (e) => {
+  // Lógica real para el Paso 3
+  const handleSubmitNewPassword = async (e) => {
     e.preventDefault();
     const newErrors = validateStep3();
     
     if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      // Simular actualización de contraseña
-      setTimeout(() => {
-        setIsLoading(false);
-        alert('¡Contraseña actualizada correctamente! Ya puedes iniciar sesión.');
-        // Redirigir al login
-        // window.location.href = '/login';
-      }, 1500);
+      
+      const result = await execute('post', '/auth/reset-password', { 
+        email: formData.email, 
+        recoveryCode: formData.recoveryCode,
+        newPassword: formData.newPassword
+      });
+
+      if (result.success) {
+        alert('✅ ¡Contraseña actualizada correctamente! Ya puedes iniciar sesión.');
+        navigate('/logIn'); // Redirigir al login
+      } else {
+        // Mostrar error de API
+        setErrors(prev => ({ ...prev, api: result.error }));
+      }
     } else {
       setErrors(newErrors);
     }
   };
 
-  const handleResendCode = () => {
-    alert('Se ha reenviado el código de recuperación a tu email.');
+  const handleResendCode = async () => {
+    // Reutilizar la lógica de envío de email
+    const result = await execute('post', '/auth/request-password-reset', { email: formData.email });
+    if (result.success) {
+        alert('✅ Se ha reenviado el código de recuperación a tu email.');
+    } else {
+        alert(`❌ Error al reenviar: ${result.error}`);
+    }
   };
 
   return (
@@ -153,6 +191,14 @@ export default function RecPass(){
             ))}
           </div>
         </div>
+        
+        {/* Mensaje de Error de API General */}
+        {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong className="font-bold">Error:</strong>
+                <span className="block sm:inline"> {error}</span>
+            </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-lg p-6">
           {/* Paso 1: Ingresar Email */}
@@ -173,6 +219,7 @@ export default function RecPass(){
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="tu@email.com"
+                  disabled={isLoading}
                 />
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -225,6 +272,7 @@ export default function RecPass(){
                     errors.recoveryCode ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="000000"
+                  disabled={isLoading}
                 />
                 {errors.recoveryCode && (
                   <p className="mt-1 text-sm text-red-600">{errors.recoveryCode}</p>
@@ -237,15 +285,17 @@ export default function RecPass(){
               <div className="space-y-3">
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                  disabled={isLoading}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Verificar código
+                  {isLoading ? 'Verificando...' : 'Verificar código'}
                 </button>
                 
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  className="w-full py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                  disabled={isLoading}
+                  className="w-full py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
                 >
                   Reenviar código
                 </button>
@@ -255,6 +305,7 @@ export default function RecPass(){
                 <button
                   type="button"
                   onClick={() => setStep(1)}
+                  disabled={isLoading}
                   className="text-sm text-amber-600 hover:text-amber-500"
                 >
                   ← Cambiar email
@@ -281,6 +332,7 @@ export default function RecPass(){
                     errors.newPassword ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Mínimo 8 caracteres"
+                  disabled={isLoading}
                 />
                 {errors.newPassword && (
                   <p className="mt-1 text-sm text-red-600">{errors.newPassword}</p>
@@ -302,6 +354,7 @@ export default function RecPass(){
                     errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Repite tu contraseña"
+                  disabled={isLoading}
                 />
                 {errors.confirmPassword && (
                   <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
@@ -332,6 +385,7 @@ export default function RecPass(){
                 <button
                   type="button"
                   onClick={() => setStep(2)}
+                  disabled={isLoading}
                   className="text-sm text-amber-600 hover:text-amber-500"
                 >
                   ← Volver al código
@@ -354,4 +408,3 @@ export default function RecPass(){
     </div>
   );
 };
-
