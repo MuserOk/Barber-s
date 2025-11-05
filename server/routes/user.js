@@ -27,7 +27,7 @@ const protect = (req, res, next) => {
 // [GET] /api/user/tendencias - Obtener todas las tendencias
 router.get('/tendencias', async (req, res) => {
     try {
-        const [tendencias] = await pool.query('SELECT id_tendencia, nombre, imagen_url FROM TENDENCIAS WHERE activo = TRUE');
+        const [tendencias] = await pool.query('SELECT id_tendencia, nombre, imagen_url FROM tendencias WHERE activo = TRUE');
         res.status(200).json(tendencias);
     } catch (error) {
         console.error('Error al obtener tendencias:', error);
@@ -41,7 +41,7 @@ router.get('/perfil', protect, async (req, res) => {
 
     try {
         // Obtener datos básicos del usuario
-        const [users] = await pool.query('SELECT id_usuario, nombre_completo, email, telefono, puntos_fidelidad, miembro_desde, id_rol FROM USUARIOS WHERE id_usuario = ?', [userId]);
+        const [users] = await pool.query('SELECT id_usuario, nombre_completo, edad, email, telefono, puntos_fidelidad, miembro_desde, id_rol FROM usuarios WHERE id_usuario = ?', [userId]);
         const user = users[0];
 
         if (!user) {
@@ -50,7 +50,7 @@ router.get('/perfil', protect, async (req, res) => {
 
         // Si es barbero, obtener detalles adicionales
         if (user.id_rol === 2) {
-            const [barberDetails] = await pool.query('SELECT especialidad, experiencia_anios, biografia, horario_laboral, rating_promedio FROM BARBEROS_DETALLES WHERE id_barbero = ?', [userId]);
+            const [barberDetails] = await pool.query('SELECT especialidad, experiencia_anios, biografia, horario_laboral, rating_promedio FROM barberos_detalles WHERE id_barbero = ?', [userId]);
             user.barberDetails = barberDetails[0] || {};
         }
 
@@ -69,26 +69,35 @@ router.put('/perfil', protect, async (req, res) => {
         nombre_completo, 
         email, 
         telefono, 
+        edad,
         especialidad, 
         experiencia_anios, 
-        biografia 
+        biografia,
+        horario_laboral
         // Agrega aquí todas las propiedades que envías desde el frontend
     } = req.body;
+
+    // **CORRECCIÓN CRÍTICA:** Asegurar que experiencia_anios sea un número o NULL
+    const experienciaAniosDB = parseInt(experiencia_anios, 10);
+    // Si la conversión falla (ej: si es '8 años' o '') será NaN. 
+    // Usamos un operador ternario para manejar esto.
+    const finalExperienciaAnios = isNaN(experienciaAniosDB) || experiencia_anios === '' ? null : experienciaAniosDB;
+
 
     let connection; // Usar una conexión para transacciones si es necesario, o pools.query si son separadas.
     try {
         // 1. Actualizar tabla USUARIOS (Asume que 'nombre' en el frontend es 'nombre_completo' en DB)
         await pool.query(
-            'UPDATE USUARIOS SET nombre_completo = ?, email = ?, telefono = ? WHERE id_usuario = ?',
-            [nombre_completo, email, telefono, userId]
+            'UPDATE usuarios SET nombre_completo = ?, email = ?, telefono = ?, edad = ? WHERE id_usuario = ?',
+            [nombre_completo, email, telefono, edad, userId]
         );
 
         // 2. Si el usuario es Barbero (Rol 2, lo sabemos por el flujo de BarberPage)
         // Actualizar tabla BARBEROS_DETALLES
         // IMPORTANTE: Este update solo funciona si existe una fila en BARBEROS_DETALLES.
         const [barberResult] = await pool.query(
-            'UPDATE BARBEROS_DETALLES SET especialidad = ?, experiencia_anios = ?, biografia = ? WHERE id_barbero = ?',
-            [especialidad, experiencia_anios, biografia, userId]
+            'UPDATE barberos_detalles SET especialidad = ?, experiencia_anios = ?, biografia = ?, horario_laboral = ? WHERE id_barbero = ?',
+            [especialidad, finalExperienciaAnios, biografia, horario_laboral, userId]
         );
 
         // Opcional: Si el barbero no existía en detalles (0 filas afectadas), podrías hacer un INSERT aquí.
@@ -107,7 +116,7 @@ router.put('/perfil', protect, async (req, res) => {
 // [GET] /api/user/servicios - Obtener todos los servicios
 router.get('/servicios', async (req, res) => {
     try {
-        const [servicios] = await pool.query('SELECT id_servicio, nombre, precio, duracion_minutos FROM SERVICIOS');
+        const [servicios] = await pool.query('SELECT id_servicio, nombre, precio, duracion_minutos FROM servicios');
         res.status(200).json(servicios);
     } catch (error) {
         console.error('Error al obtener servicios:', error);
@@ -121,11 +130,12 @@ router.get('/barberos', async (req, res) => {
     try {
         const [barberos] = await pool.query(
             `SELECT u.id_usuario AS id_barbero, u.nombre_completo, bd.especialidad 
-             FROM USUARIOS u
-             JOIN BARBEROS_DETALLES bd ON u.id_usuario = bd.id_barbero
+             FROM usuarios u
+             JOIN barberos_detalles bd ON u.id_usuario = bd.id_barbero
              WHERE u.id_rol = 2` // Asumiendo que el rol 2 es 'barbero'
         );
         res.status(200).json(barberos);
+        
     } catch (error) {
         console.error('Error al obtener barberos:', error);
         res.status(500).json({ message: 'Error interno al obtener barberos.' });
@@ -142,8 +152,8 @@ router.get('/comments', async (req, res) => {
                 c.texto_comentario AS text, 
                 u.nombre_completo AS name,
                 u.foto_perfil_url AS photo
-             FROM COMENTARIOS_REVIEWS c
-             JOIN USUARIOS u ON c.id_cliente = u.id_usuario
+             FROM comentarios_reviews c
+             JOIN usuarios u ON c.id_cliente = u.id_usuario
              ORDER BY c.fecha_creacion DESC
              LIMIT 5`
         );
@@ -151,7 +161,7 @@ router.get('/comments', async (req, res) => {
         // Si no hay foto, usar un placeholder
         const finalComments = comments.map(c => ({
             ...c,
-            photo: c.photo || 'https://via.placeholder.com/150' // Placeholder
+            photo: c.photo || 'https://modaellos.com/wp-content/uploads/2019/01/cortes-de-pelo-para-cara-redonda-2020-para-hombres-corte-clasico-FOTOS-zac-efron.jpg' // actor
         }));
 
         res.status(200).json(finalComments);
@@ -177,9 +187,9 @@ router.get('/historial', protect, async (req, res) => {
                 t.notas_barbero AS notas,
                 s.nombre AS servicio,
                 u.nombre_completo AS barbero
-             FROM TURNOS t
-             JOIN SERVICIOS s ON t.id_servicio = s.id_servicio
-             JOIN USUARIOS u ON t.id_barbero = u.id_usuario
+             FROM turnos t
+             JOIN servicios s ON t.id_servicio = s.id_servicio
+             JOIN usuarios u ON t.id_barbero = u.id_usuario
              WHERE t.id_cliente = ? AND t.estado = 'Completado'
              ORDER BY t.fecha_hora_inicio DESC`,
             [id_cliente]
@@ -191,7 +201,7 @@ router.get('/historial', protect, async (req, res) => {
         if (turnoIds.length > 0) {
             [fotos] = await pool.query(
                 `SELECT id_turno, url_foto 
-                 FROM FOTOS_TURNOS 
+                 FROM fotos_turnos 
                  WHERE id_turno IN (?)`,
                 [turnoIds]
             );

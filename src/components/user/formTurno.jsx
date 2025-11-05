@@ -35,6 +35,7 @@ export default function FormTurno() {
         setBarberos(barberResult.data);
       }
       
+      
       // Nota: La carga de horarios disponibles se haría en un useEffect separado
       // que dependa de id_barbero y fecha. Por ahora, usamos un mock.
       setHorariosDisponibles(['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00']);
@@ -49,6 +50,8 @@ export default function FormTurno() {
       ...prev,
       [name]: value
     }))
+    
+    
   }
 
   const handleSubmit = async (e) => { // <--- Hacer la función asíncrona

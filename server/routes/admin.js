@@ -39,7 +39,7 @@ router.get('/dashboard', protectAdmin, async (req, res) => {
             `SELECT 
                 COUNT(id_turno) AS citasHoy, 
                 SUM(precio_final) AS ingresosHoy
-             FROM TURNOS 
+             FROM turnos 
              WHERE DATE(fecha_hora_inicio) = ? AND estado = 'Completado'`,
             [today]
         );
@@ -47,7 +47,7 @@ router.get('/dashboard', protectAdmin, async (req, res) => {
         // 2. Clientes Nuevos (Este Mes)
         const [newClients] = await pool.query(
             `SELECT COUNT(id_usuario) AS clientesNuevosMes
-             FROM USUARIOS 
+             FROM usuarios 
              WHERE id_rol = 3 AND miembro_desde >= ?`, // Asumiendo rol 3 = Cliente
             [currentMonthStart]
         );
@@ -55,14 +55,14 @@ router.get('/dashboard', protectAdmin, async (req, res) => {
         // 3. Rating Promedio (General)
         const [rating] = await pool.query(
             `SELECT AVG(rating_cliente) AS ratingPromedio
-             FROM TURNOS 
+             FROM turnos 
              WHERE rating_cliente IS NOT NULL`
         );
 
         // 4. Productos con Stock Bajo (Asumiendo stock < 5)
         const [lowStock] = await pool.query(
             `SELECT COUNT(id_producto) AS productosStockBajo
-             FROM PRODUCTOS 
+             FROM productos 
              WHERE stock < 5`
         );
 
@@ -70,9 +70,9 @@ router.get('/dashboard', protectAdmin, async (req, res) => {
         const [citasHoyDetalle] = await pool.query(
             `SELECT 
                 t.fecha_hora_inicio, s.nombre AS servicio, u.nombre_completo AS cliente
-             FROM TURNOS t
-             JOIN SERVICIOS s ON t.id_servicio = s.id_servicio
-             JOIN USUARIOS u ON t.id_cliente = u.id_usuario
+             FROM turnos t
+             JOIN servicios s ON t.id_servicio = s.id_servicio
+             JOIN usuarios u ON t.id_cliente = u.id_usuario
              WHERE DATE(t.fecha_hora_inicio) = ? AND t.estado = 'Confirmado'
              ORDER BY t.fecha_hora_inicio ASC`,
             [today]
@@ -81,8 +81,8 @@ router.get('/dashboard', protectAdmin, async (req, res) => {
         // 6. Barberos Activos (Simplificado: todos los barberos)
         const [barberosActivos] = await pool.query(
             `SELECT u.nombre_completo AS nombre, bd.rating_promedio AS rating
-             FROM USUARIOS u
-             JOIN BARBEROS_DETALLES bd ON u.id_usuario = bd.id_barbero
+             FROM usuarios u
+             JOIN barberos_detalles bd ON u.id_usuario = bd.id_barbero
              WHERE u.id_rol = 2` // Asumiendo rol 2 = Barbero
         );
 

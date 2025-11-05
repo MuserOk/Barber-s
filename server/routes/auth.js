@@ -22,7 +22,7 @@ router.post('/register', async(req, res) => {
         connection = await pool.getConnection();
 
         // 3. Verificar si el usuario ya existe
-        const [existingUser] = await connection.query('SELECT id_usuario FROM USUARIOS WHERE email = ?', [email]);
+        const [existingUser] = await connection.query('SELECT id_usuario FROM usuarios WHERE email = ?', [email]);
         if (existingUser.length > 0) {
             return res.status(409).json({ message: 'El email ya está registrado.' });
         }
@@ -32,7 +32,7 @@ router.post('/register', async(req, res) => {
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
         // 5. Obtener el ID del rol 'cliente' (asumiendo que lo insertaste como ID 3)
-        const [roleResult] = await connection.query('SELECT id_rol FROM ROLES WHERE nombre_rol = ?', ['cliente']);
+        const [roleResult] = await connection.query('SELECT id_rol FROM roles WHERE nombre_rol = ?', ['cliente']);
         const id_rol = roleResult.length > 0 ? roleResult[0].id_rol : undefined;
 
 
@@ -42,7 +42,7 @@ router.post('/register', async(req, res) => {
 
         // 6. Insertar el nuevo usuario
         const insertQuery = `
-            INSERT INTO USUARIOS 
+            INSERT INTO usuarios 
             (id_rol, nombre_completo, email, password_hash, telefono) 
             VALUES (?, ?, ?, ?, ?)
         `;
@@ -84,7 +84,7 @@ router.post('/login', async(req, res) => {
         connection = await pool.getConnection();
 
         // Buscar el usuario por email
-        const [users] = await connection.query('SELECT * FROM USUARIOS WHERE email = ?', [email]);
+        const [users] = await connection.query('SELECT * FROM usuarios WHERE email = ?', [email]);
         const user = users[0];
 
         if (!user) {
@@ -145,7 +145,7 @@ router.get('/check-session', async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
         // 2. Buscar los datos del usuario (opcional, pero recomendado)
-        const [users] = await pool.query('SELECT id_usuario, nombre_completo, email, id_rol FROM USUARIOS WHERE id_usuario = ?', [decoded.id]);
+        const [users] = await pool.query('SELECT id_usuario, nombre_completo, email, id_rol FROM usuarios WHERE id_usuario = ?', [decoded.id]);
         const user = users[0];
 
         if (!user) {
@@ -188,7 +188,7 @@ router.post('/request-password-reset', async (req, res) => {
         connection = await pool.getConnection();
 
         // 1. Verificar que el usuario exista
-        const [users] = await connection.query('SELECT id_usuario FROM USUARIOS WHERE email = ?', [email]);
+        const [users] = await connection.query('SELECT id_usuario FROM usuarios WHERE email = ?', [email]);
         if (users.length === 0) {
             // Por seguridad, respondemos éxito incluso si el email no existe
             // para no dar pistas sobre qué emails están registrados.
@@ -199,7 +199,7 @@ router.post('/request-password-reset', async (req, res) => {
         const recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
 
         // 3. Guardar el código en la base de datos
-        await connection.query('UPDATE USUARIOS SET codigo_recuperacion = ? WHERE email = ?', [recoveryCode, email]);
+        await connection.query('UPDATE usuarios SET codigo_recuperacion = ? WHERE email = ?', [recoveryCode, email]);
 
         // 4. Simular el envío del código por email (En un proyecto real, usarías Nodemailer)
         console.log(`[EMAIL SIMULADO] Código de recuperación para ${email}: ${recoveryCode}`);
@@ -228,7 +228,7 @@ router.post('/verify-code', async (req, res) => {
 
         // 1. Buscar el usuario por email y código
         const [users] = await connection.query(
-            'SELECT id_usuario FROM USUARIOS WHERE email = ? AND codigo_recuperacion = ?', 
+            'SELECT id_usuario FROM usuarios WHERE email = ? AND codigo_recuperacion = ?', 
             [email, recoveryCode]
         );
 
@@ -261,7 +261,7 @@ router.post('/reset-password', async (req, res) => {
 
         // 1. Verificar que el código sea correcto (doble verificación)
         const [users] = await connection.query(
-            'SELECT id_usuario FROM USUARIOS WHERE email = ? AND codigo_recuperacion = ?', 
+            'SELECT id_usuario FROM usuarios WHERE email = ? AND codigo_recuperacion = ?', 
             [email, recoveryCode]
         );
 
@@ -275,7 +275,7 @@ router.post('/reset-password', async (req, res) => {
 
         // 3. Actualizar la contraseña y limpiar el código de recuperación
         await connection.query(
-            'UPDATE USUARIOS SET password_hash = ?, codigo_recuperacion = NULL WHERE email = ?', 
+            'UPDATE usuarios SET password_hash = ?, codigo_recuperacion = NULL WHERE email = ?', 
             [passwordHash, email]
         );
 

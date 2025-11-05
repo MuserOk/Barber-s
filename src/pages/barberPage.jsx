@@ -7,7 +7,7 @@ import { useApi } from '../hooks/useApi' // <--- Importar useApi
 export default function BarberPage() {
   const [activeTab, setActiveTab] = useState('calendario')
   const [barberData, setBarberData] = useState(null); // Estado para los datos del barbero
-  
+
   // Usar useApi para la petición
   const { isLoading, error, execute } = useApi();
 
@@ -15,15 +15,22 @@ export default function BarberPage() {
   useEffect(() => {
     const loadBarberData = async () => {
       // Usamos la ruta /api/user/perfil que ya creamos (protegida por JWT)
-      const result = await execute('get', '/user/perfil'); 
+      const result = await execute('get', '/user/perfil');
       if (result.success) {
-        setBarberData(result.data);
+
+        // Mapear los detalles para que Perfil los reciba como 'details'
+        const data = {
+          ...result.data,
+          details: result.data.barberDetails || {} // Asegurar que 'details' exista
+        }
+
+        setBarberData(data);
+
       } else {
         console.error("Error al cargar datos del barbero:", result.error);
         // Aquí podrías forzar un logout si el error es 401 (no autorizado)
       }
     };
-
     loadBarberData();
   }, [execute]);
 
@@ -45,14 +52,14 @@ export default function BarberPage() {
       </div>
     );
   }
-  
+
   // 2. Si no hay datos (y no hubo error), puede ser un problema de rol
   if (!barberData) {
-      return (
-        <div className="min-h-[400px] flex items-center justify-center bg-gray-300 text-gray-800">
-          <p className="text-xl font-semibold">Datos de Barbero no disponibles.</p>
-        </div>
-      );
+    return (
+      <div className="min-h-[400px] flex items-center justify-center bg-gray-300 text-gray-800">
+        <p className="text-xl font-semibold">Datos de Barbero no disponibles.</p>
+      </div>
+    );
   }
 
 
@@ -82,15 +89,15 @@ export default function BarberPage() {
       {/* 🔹 Contenido dinámico según la pestaña */}
       <div className="bg-gray-300 min-h-[400px]">
         {activeTab === 'calendario' && (
-            // Pasar datos del barbero al Calendario
-            <Calendario barberData={barberData} /> 
+          // Pasar datos del barbero al Calendario
+          <Calendario barberData={barberData} />
         )}
 
 
         {activeTab === 'rendimiento' && (
           <div className="p-4 text-gray-800">
-           {/* Pasar datos del barbero al Performance */}
-           <Performance barberData={barberData} /> 
+            {/* Pasar datos del barbero al Performance */}
+            <Performance barberData={barberData} />
           </div>
         )}
 
@@ -98,7 +105,7 @@ export default function BarberPage() {
         {activeTab === 'perfil' && (
           <div className="p-4 text-gray-800 flex flex-col items-center gap-6 max-w-200 m-auto">
             {/* Pasar datos del barbero al Perfil */}
-            <Perfil initialData={barberData} /> 
+            <Perfil initialData={barberData} />
           </div>
         )}
       </div>

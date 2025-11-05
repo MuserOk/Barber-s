@@ -8,16 +8,16 @@ export default function AdminPage() {
   // Usar useApi para cargar las métricas
   const { data: metricas, isLoading, error, execute } = useApi();
 
-   // Cargar métricas al montar el componente
+  // Cargar métricas al montar el componente
   useEffect(() => {
     const loadMetrics = async () => {
       // Llamar a la ruta del dashboard
-      await execute('get', '/admin/dashboard'); 
+      await execute('get', '/admin/dashboard');
     };
     loadMetrics();
   }, [execute]);
 
- // 1. Manejo de Carga y Error
+  // 1. Manejo de Carga y Error
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -26,7 +26,7 @@ export default function AdminPage() {
     );
   }
 
-    if (error) {
+  if (error) {
     return (
       <div className="min-h-screen p-4 bg-red-100 border border-red-400 text-red-700">
         <p className="font-bold">Error de Carga del Dashboard:</p>
@@ -37,9 +37,10 @@ export default function AdminPage() {
 
   // Si no hay métricas (y no hubo error), puede ser un problema de datos
   const dashboardData = metricas || {};
-
-
   
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 🔹 Header del Admin */}
@@ -99,7 +100,7 @@ export default function AdminPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-600 text-sm">Ingresos Hoy</p>
-                    <p className="text-2xl font-bold text-gray-800">${dashboardData.ingresosHoy}</p> 
+                    <p className="text-2xl font-bold text-gray-800">${dashboardData.ingresosHoy}</p>
                   </div>
                   <div className="text-2xl text-green-500">
                     <svg fill="#37025a" height="28px" width="28px" version="1.1" id="Layer_1" viewBox="0 0 512 512" stroke="#37025a"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M263.802,304.683c-10.339-5.465-24.498-12.95-24.498-18.631c0-9.206,7.49-16.696,16.696-16.696 c9.206,0,16.696,7.49,16.696,16.696c0,9.22,7.475,16.696,16.696,16.696s16.696-7.475,16.696-16.696 c0-21.766-13.959-40.323-33.391-47.215V230.4c0-9.22-7.475-16.696-16.696-16.696c-9.22,0-16.696,7.475-16.696,16.696v8.437 c-19.433,6.892-33.391,25.45-33.391,47.215c0,25.8,23.445,38.193,42.285,48.151c10.339,5.465,24.498,12.95,24.498,18.631 c0,9.206-7.49,16.696-16.696,16.696c-9.206,0-16.696-7.49-16.696-16.696c0-9.22-7.475-16.696-16.696-16.696 s-16.696,7.475-16.696,16.696c0,21.766,13.959,40.323,33.391,47.215v8.437c0,9.22,7.475,16.696,16.696,16.696 c9.22,0,16.696-7.475,16.696-16.696v-8.437c19.433-6.892,33.391-25.45,33.391-47.215 C306.087,327.034,282.642,314.642,263.802,304.683z"></path> </g> </g> <g> <g> <path d="M155.826,369.53h-55.652V269.357h55.652c9.22,0,16.696-7.475,16.696-16.696c0-9.22-7.475-16.696-16.696-16.696H83.478 c-9.22,0-16.696,7.475-16.696,16.696v133.565c0,9.22,7.475,16.696,16.696,16.696h72.348c9.22,0,16.696-7.475,16.696-16.696 S165.047,369.53,155.826,369.53z"></path> </g> </g> <g> <g> <path d="M428.522,235.965h-72.348c-9.22,0-16.696,7.475-16.696,16.696c0,9.22,7.475,16.696,16.696,16.696h55.652V369.53h-55.652 c-9.22,0-16.696,7.475-16.696,16.696s7.475,16.696,16.696,16.696h72.348c9.22,0,16.696-7.475,16.696-16.696V252.661 C445.217,243.44,437.742,235.965,428.522,235.965z"></path> </g> </g> <g> <g> <path d="M461.913,38.957H50.087C22.469,38.957,0,61.426,0,89.044c0,4.754,0,327.745,0,333.913 c0,27.618,22.469,50.087,50.087,50.087h411.826c27.618,0,50.087-22.469,50.087-50.087c0-13.605,0-320.13,0-333.913 C512,61.426,489.531,38.957,461.913,38.957z M478.609,422.957c0,9.206-7.49,16.696-16.696,16.696H50.087 c-9.206,0-16.696-7.49-16.696-16.696c0-10.246,0-196.041,0-205.913c0-9.206,7.49-16.696,16.696-16.696h411.826 c9.206,0,16.696,7.49,16.696,16.696C478.609,226.933,478.609,412.832,478.609,422.957z M478.609,169.828 c-5.226-1.853-10.843-2.872-16.696-2.872H50.087c-5.852,0-11.47,1.018-16.696,2.872v-14.002c0-9.206,7.49-16.696,16.696-16.696 h411.826c9.206,0,16.696,7.49,16.696,16.696V169.828z M478.609,108.611c-5.226-1.853-10.843-2.872-16.696-2.872H50.087 c-5.852,0-11.47,1.018-16.696,2.872V89.044c0-9.206,7.49-16.696,16.696-16.696h411.826c9.206,0,16.696,7.49,16.696,16.696V108.611 z"></path> </g> </g> </g></svg>
@@ -164,21 +165,23 @@ export default function AdminPage() {
 
             {/* Gráficos y secciones rápidas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
-              {/* Citas de hoy */}
-              <div className="bg-gray-500 rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-100 mb-4">Citas de Hoy</h3>
+
+             
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Citas de Hoy</h3>
                 <div className="space-y-3">
                   {dashboardData.citasHoyDetalle?.map((cita, index) => (
-                    <div key={item} className="flex justify-between items-center p-3 bg-gray-400 rounded-lg">
+                    // Usar un fondo claro para cada cita
+                    <div key={index} className="flex justify-between items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <div>
-                        <p className="font-medium">{cita.cliente}</p>
+                        <p className="font-medium text-gray-800">{cita.cliente}</p>
                         <p className="text-sm text-gray-600">{new Date(cita.fecha_hora_inicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {cita.servicio}</p>
                       </div>
-                      <span className="bg-white text-gray-800 text-xs px-2 py-1 rounded">Confirmada</span>
+                      <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">Confirmada</span>
                     </div>
                   ))}
-                {dashboardData.citasHoyDetalle?.length === 0 && (
-                      <p className="text-gray-600 text-center">No hay citas confirmadas para hoy.</p>
+                  {dashboardData.citasHoyDetalle?.length === 0 && (
+                    <p className="text-gray-600 text-center">No hay citas confirmadas para hoy.</p>
                   )}
                 </div>
               </div>
@@ -187,13 +190,13 @@ export default function AdminPage() {
               <div className="bg-gray-500 rounded-xl shadow-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">💈 Barberos Activos</h3>
                 <div className="space-y-3 text-gray-700">
-                   {dashboardData.barberosActivos?.map((barbero, index) => (
+                  {dashboardData.barberosActivos?.map((barbero, index) => (
                     <div key={index} className="flex justify-between items-center">
                       <span className="font-medium">{barbero.nombre}</span>
                       <div className="text-right">
                         <span className={`text-xs px-2 py-1 rounded ${barbero.rating > 4.5
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-blue-100 text-blue-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-blue-100 text-blue-800'
                           }`}>
                           Rating: {barbero.rating}
                         </span>

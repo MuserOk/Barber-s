@@ -105,7 +105,7 @@ export default function UserPage() {
       </div>
 
       {/* 🔹 Contenido dinámico según la pestaña */}
-      <div className="bg-gray-300 p-4 min-h-[400px]">
+      <div className="bg-gray-300 p-4 min-h-[400px] place-items-center grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {renderContent()}
       </div>
     </>

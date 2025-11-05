@@ -1,6 +1,18 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom';
+
 
 export default function About() {
+  const navigate = useNavigate();
+
+
+  const handleReservarClick = () => {
+
+    navigate('/userPage'); 
+  };
+
+
+
   return (
     <div className="min-h-screen bg-linear-to-br from-stone-50 to-amber-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -47,9 +59,7 @@ export default function About() {
               </div>
             </div>
             <div className="flex justify-center">
-              <div className="w-full max-w-sm h-80 bg-linear-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center">
-                <span className="text-white text-6xl">💈</span>
-              </div>
+                <img className='w-full max-w-sm bg-linear-to-br rounded-2xl' src="https://images.fresha.com/lead-images/placeholders/barbershop-96.jpg?class=venue-gallery-mobile" alt="el primer barbero" />
             </div>
           </div>
         </div>
@@ -144,12 +154,10 @@ export default function About() {
             Únete a nuestra familia y descubre por qué somos la barbería de confianza
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-amber-600 px-6 py-3 rounded-lg font-semibold hover:bg-stone-100 transition duration-200">
+            <button onClick={handleReservarClick}  className="bg-white text-amber-600 px-6 py-3 rounded-lg font-semibold hover:bg-stone-100 transition duration-200">
               Reservar Cita
             </button>
-            <button className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-amber-600 transition duration-200">
-              Ver Servicios
-            </button>
+            
           </div>
         </div>
 

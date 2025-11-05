@@ -25,6 +25,7 @@ const protect = (req, res, next) => {
     }
 };
 
+
 // [POST] /api/turnos - Crear una nueva reserva de turno
 router.post('/', protect, async (req, res) => {
     const id_cliente = req.user.id; // ID del cliente logueado (del token)
@@ -43,7 +44,7 @@ router.post('/', protect, async (req, res) => {
         const fecha_hora_inicio = `${fecha} ${hora}:00`;
         
         // Obtener la duración del servicio para calcular la hora de fin
-        const [serviceResult] = await connection.query('SELECT duracion_minutos, precio FROM SERVICIOS WHERE id_servicio = ?', [id_servicio]);
+        const [serviceResult] = await connection.query('SELECT duracion_minutos, precio FROM servicios WHERE id_servicio = ?', [id_servicio]);
         const service = serviceResult[0];
 
         if (!service) {
@@ -53,15 +54,19 @@ router.post('/', protect, async (req, res) => {
         const duracion_minutos = service.duracion_minutos;
         const precio_final = service.precio;
         
-        // Calcular fecha_hora_fin (requiere lógica de fecha/hora más compleja en JS, pero simplificamos aquí)
-        // En un entorno real, usarías librerías como 'moment' o 'date-fns'
-        const fin = new Date(new Date(fecha_hora_inicio).getTime() + duracion_minutos * 60000);
-        const fecha_hora_fin = fin.toISOString().slice(0, 19).replace('T', ' ');
+       // Calcular fecha_hora_fin (MÉTODO MEJORADO PARA MANTENER HORA LOCAL)
+const start = new Date(fecha_hora_inicio); // Esto crea una fecha en la zona horaria del servidor
+start.setMinutes(start.getMinutes() + duracion_minutos); // Añadir los minutos
+
+// Formatear la fecha de fin a 'YYYY-MM-DD HH:MM:SS' sin conversión de zona horaria
+const pad = (num) => num.toString().padStart(2, '0');
+
+const fecha_hora_fin = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())} ${pad(start.getHours())}:${pad(start.getMinutes())}:${pad(start.getSeconds())}`;
 
 
         // 3. Verificar disponibilidad (¡CRUCIAL!)
         const [conflict] = await connection.query(
-            `SELECT id_turno FROM TURNOS 
+            `SELECT id_turno FROM turnos 
              WHERE id_barbero = ? 
              AND fecha_hora_inicio < ? 
              AND fecha_hora_fin > ? 
@@ -75,7 +80,7 @@ router.post('/', protect, async (req, res) => {
 
         // 4. Crear el turno
         const insertQuery = `
-            INSERT INTO TURNOS 
+            INSERT INTO turnos 
             (id_cliente, id_barbero, id_servicio, fecha_hora_inicio, fecha_hora_fin, precio_final, estado) 
             VALUES (?, ?, ?, ?, ?, ?, 'Confirmado')
         `;

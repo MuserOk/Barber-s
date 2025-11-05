@@ -7,45 +7,51 @@ import { useApi } from '../../hooks/useApi'; // <--- Importar useApi
 export default function Perfil({ initialData }) {
   const { isLoading: isSaving, error: saveError, execute } = useApi(); // Usar useApi para guardar
 
+  
   // Usamos los datos pasados como prop para el estado inicial
   // Creamos una copia profunda para que la edición no afecte la prop original
   const [userData, setUserData] = useState(initialData || {});
   const [isEditing, setIsEditing] = useState(false)
 
 
- // 2. **SINCRONIZACIÓN Y NORMALIZACIÓN DE DATOS (CRUCIAL):**
+
+
+  // 2. **SINCRONIZACIÓN Y NORMALIZACIÓN DE DATOS (CRUCIAL):**
   useEffect(() => {
     // Solo actualiza si initialData tiene un valor real (no null/undefined)
     if (initialData && Object.keys(initialData).length > 0) {
-        setUserData({
-            ...initialData,
-            // Asegurar que details no sea null/undefined para evitar errores
-            details: initialData.details || { 
-                especialidad: '', 
-                experiencia_anios: '', 
-                biografia: '', 
-                horario_laboral: '' 
-            },
-            // Asegurar que campos clave de USUARIOS no sean null/undefined
-            nombre_completo: initialData.nombre_completo || '',
-            email: initialData.email || '',
-            telefono: initialData.telefono || '',
-            edad: initialData.edad || '',
-        });
+      setUserData({
+        ...initialData,
+        
+        // Asegurar que details no sea null/undefined para evitar errores
+        details: initialData.barberDetails || {
+          especialidad: '',
+          experiencia_anios: '',
+          biografia: '',
+          horario_laboral: ''
+        },
+         
+        // Asegurar que campos clave de USUARIOS no sean null/undefined
+        nombre_completo: initialData.nombre_completo || '',
+        email: initialData.email || '',
+        telefono: initialData.telefono || '',
+        edad: initialData.edad || '',
+      });
     }
   }, [initialData]); // Depende de initialData
-  
+
 
   // Sincronizar el estado local si la prop cambia (aunque no debería)
   useEffect(() => {
     setUserData(initialData);
   }, [initialData]);
 
- const details = userData.details || {}; 
-  const rating = details.rating_promedio || 0;
-  const experienciaAnios = details.experiencia_anios || 'N/A';
-  const bio = details.biografia || 'Sin biografía.';
-  const horario = details.horario_laboral || 'No definido.';
+  const details = userData.barberDetails || {};
+  const rating = userData.barberDetails.rating_promedio || 0;
+  const experienciaAnios = userData.barberDetails.experiencia_anios || '';
+  const bio = userData.barberDetails.biografia || '';
+  const horario = userData.barberDetails.horario_laboral || '';
+  const especialidad = userData.barberDetails.especialidad || '';
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -55,11 +61,15 @@ export default function Perfil({ initialData }) {
       // Mapear 'experiencia' a 'experiencia_anios' y 'bio' a 'biografia'
       const dbName = name === 'experiencia' ? 'experiencia_anios' : name === 'bio' ? 'biografia' : name === 'horario' ? 'horario_laboral' : name;
 
+      // convertir a int
+      const finalValue = name === 'experiencia' ? (value === '' ? '' : parseInt(value, 10)) : value;
+
+
       setUserData(prev => ({
         ...prev,
         details: {
           ...prev.details,
-          [dbName]: value
+          [dbName]: finalValue
         }
       }));
     } else {
@@ -79,10 +89,10 @@ export default function Perfil({ initialData }) {
       telefono: userData.telefono,
       edad: userData.edad,
       // Mapeo de nombres de frontend a nombres de backend
-      especialidad: userData.details.especialidad,
-      experiencia_anios: userData.details.experiencia_anios,
-      biografia: userData.details.biografia,
-      horario_laboral: userData.details.horario_laboral,
+      especialidad: userData.barberDetails.especialidad,
+      experiencia_anios: userData.barberDetails.experiencia_anios,
+      biografia: userData.barberDetails.biografia,
+      horario_laboral: userData.barberDetails.horario_laboral,
     };
 
     // 2. Llamar a la API de actualización (PUT /api/user/perfil)
@@ -103,7 +113,7 @@ export default function Perfil({ initialData }) {
     setIsEditing(false);
   }
 
- 
+
   return (
     <>
       {/* Header */}
@@ -133,13 +143,13 @@ export default function Perfil({ initialData }) {
 
           {/* Rating */}
           <div className="text-center mb-6">
-            <div className="flex items-center justify-center space-x-1">
+            <div className="flex items-center justify-center ">
               {[...Array(5)].map((_, i) => (
                 <span
                   key={i}
                   className={`text-2xl ${i < Math.floor(rating)
-                      ? 'text-amber-500'
-                      : 'text-gray-300'
+                    ? 'text-amber-500'
+                    : 'text-gray-300'
                     }`}
                 >
                   ★
@@ -153,7 +163,7 @@ export default function Perfil({ initialData }) {
           </div>
 
           {/* Información del perfil */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-black">
             {/* Columna izquierda - Información personal */}
             <div className="space-y-6">
               <div>
@@ -185,7 +195,7 @@ export default function Perfil({ initialData }) {
                     </label>
                     {isEditing ? (
                       <input
-                        type="text"
+                        type="number"
                         name="edad"
                         value={userData.edad}
                         onChange={handleInputChange}
@@ -264,11 +274,11 @@ export default function Perfil({ initialData }) {
                     </label>
                     {isEditing ? (
                       <input
-                        type="text"
-                        name="experiencia" // Mapeado a experiencia_anios en handleInputChange
-                        value={experienciaAnios}
+                        type="number"
+                        name="Experiencia" // Mapeado a experiencia_anios en handleInputChange
+                        value={Number}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="text-black w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                       />
                     ) : (
                       <p className="text-gray-600">{experienciaAnios}</p>
@@ -350,10 +360,10 @@ export default function Perfil({ initialData }) {
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
         {[
-          { label: 'Clientes Atendidos', value: '1,234', icon: '👥' },
+          { label: 'Clientes Atendidos', value: '~ 20', icon: '👥' }, // VER COMO Y DE DONDE CALCULAR
           { label: 'Años Experiencia', value: experienciaAnios, icon: '⭐' },
           { label: 'Rating Promedio', value: rating, icon: '🎯' },
-          { label: 'Servicios', value: '45', icon: '✂️' },
+          { label: 'Servicios', value: especialidad, icon: '✂️' },
         ].map((stat, index) => (
           <div key={index} className="bg-white rounded-lg shadow p-4 text-center">
             <div className="text-2xl mb-2">{stat.icon}</div>

@@ -61,10 +61,15 @@ router.get('/events', protectBarber, async (req, res) => {
 
 // [POST] /api/barber/events - Agregar un nuevo evento (Día Libre, Reunión)
 router.post('/events', protectBarber, async (req, res) => {
-    const id_barbero = req.user.id;
-    const { title, date, eventType } = req.body; // date es la fecha en formato YYYY-MM-DD
+     // Obtener Eventos de Calendario (Días Libres, Reuniones)
 
-    if (!date || !eventType) {
+
+
+
+    const id_barbero = req.user.id;
+    const { title, date, eventType, startTime, endTime } = req.body; // date es la fecha en formato YYYY-MM-DD
+
+    if (!date || !eventType || !startTime || !endTime) { //validar todos los campos
         return res.status(400).json({ message: 'Faltan datos obligatorios para el evento.' });
     }
 
@@ -73,20 +78,47 @@ router.post('/events', protectBarber, async (req, res) => {
         connection = await pool.getConnection();
         
         const finalTitle = eventType === 'day_off' ? 'Día Franco' : title;
-        const fecha_inicio = date + ' 00:00:00';
-        const fecha_fin = eventType === 'day_off' ? date + ' 23:59:59' : null; // Para eventos de día completo
+        const fecha_inicio = `${date} ${startTime}:00`; // Ej: '2025-11-07 09:00:00'
+        const fecha_fin = `${date} ${endTime}:00`;     // Ej: '2025-11-07 17:00:00'
+
+        // 💡 CALCULAR LA DURACIÓN EN MINUTOS (Para el cálculo de jornal)
+        // MySQL puede calcular la diferencia de tiempo directamente en la consulta,
+        // pero es más limpio calcularlo en Node.js para el registro de jornal.
+
+         // Convertir a objetos Date para calcular la diferencia
+        const startDateTime = new Date(`${date}T${startTime}:00`);
+        const endDateTime = new Date(`${date}T${endTime}:00`);
+
+        // Diferencia en milisegundos
+        const durationMs = endDateTime.getTime() - startDateTime.getTime();
+
+        // Diferencia en minutos
+        const durationMinutes = Math.round(durationMs / (1000 * 60)); 
+        
+        // 💡 Lógica para el campo 'tipo' (usar el valor del front-end)
+        const tipoEvento = eventType;
+
 
         const [result] = await connection.query(
             `INSERT INTO eventos_calendario 
              (id_barbero, titulo, fecha_inicio, fecha_fin, tipo) 
              VALUES (?, ?, ?, ?, ?)`,
-            [id_barbero, finalTitle, fecha_inicio, fecha_fin, eventType]
+            [id_barbero, finalTitle, fecha_inicio, fecha_fin, tipoEvento]
         );
 
-        res.status(201).json({ 
+         await connection.query(
+            `INSERT INTO registro_ausencias 
+             (id_barbero, fecha, minutos_ausentes, motivo) 
+             VALUES (?, ?, ?, ?)`,
+            [id_barbero, date, durationMinutes, finalTitle]
+        );
+
+         res.status(201).json({ 
             message: 'Evento agregado exitosamente.', 
-            eventId: result.insertId 
+            eventId: result.insertId,
+            durationMinutes: durationMinutes // Opcional: devolver la duración
         });
+
 
     } catch (error) {
         console.error('Error al agregar evento:', error);

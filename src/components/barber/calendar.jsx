@@ -271,18 +271,24 @@ export default function Calendario() {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-    const handleSubmit = async (e) => { // <--- Hacer asíncrono
+    const [startTime, setStartTime] = useState('09:00'); 
+    const [endTime, setEndTime] = useState('17:00'); 
+
+    const handleSubmit = async (e) => { 
       e.preventDefault();
       
       // 1. Preparar los datos para el backend
       const dataToSend = {
           title: eventType === 'day_off' ? 'Día Franco' : title,
-          date: date,
+          date: date, // YYYY-MM-DD
+          // 💡 NUEVOS CAMPOS
+          startTime: startTime, // HH:MM
+          endTime: endTime,   // HH:MM
           eventType: eventType
       };
       
       // 2. Llamar a la API
-      const result = await addEventExecute('post', '/barber/events', dataToSend);
+      const result = await addEventExecute('POST', '/barber/events', dataToSend);
 
       if (result.success) {
           alert('✅ Evento agregado exitosamente.');
@@ -318,11 +324,11 @@ export default function Calendario() {
               <select
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 border text-black border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 disabled={isAdding}
               >
-                <option value="day_off">Día Franco / Falta Programada</option>
-                <option value="appointment">Cita / Evento Personalizado</option>
+                <option value="day_off">Día Franco</option>
+                <option value="appointment">Personalizado</option>
               </select>
             </div>
 
@@ -335,7 +341,7 @@ export default function Calendario() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 border text-black border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                   placeholder="Ej: Reunión con proveedor"
                   required
                   disabled={isAdding}
@@ -351,7 +357,38 @@ export default function Calendario() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="text-black w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                required
+                disabled={isAdding}
+              />
+            </div>
+             
+             <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">
+                Hora Inicio
+              </label>
+              <input
+                type="time"
+                // 💡 CORRECCIÓN: Usar startTime
+                value={startTime} 
+                // 💡 CORRECCIÓN: Usar setStartTime
+                onChange={(e) => setStartTime(e.target.value)} 
+                className="text-black w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                required
+                disabled={isAdding}
+              />
+            </div>
+             <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">
+                Hora Fin
+              </label>
+              <input
+                type="time"
+                // 💡 CORRECCIÓN: Usar endTime
+                value={endTime}
+                // 💡 CORRECCIÓN: Usar setEndTime
+                onChange={(e) => setEndTime(e.target.value)}
+                className="text-black w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 required
                 disabled={isAdding}
               />

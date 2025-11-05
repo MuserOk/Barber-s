@@ -215,7 +215,7 @@ export default function RecPass(){
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 ${
+                  className={`text-black w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="tu@email.com"
@@ -268,7 +268,7 @@ export default function RecPass(){
                   maxLength="6"
                   value={formData.recoveryCode}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-center text-lg font-mono ${
+                  className={`text-black w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-center text-lg font-mono ${
                     errors.recoveryCode ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="000000"
@@ -328,7 +328,7 @@ export default function RecPass(){
                   autoComplete="new-password"
                   value={formData.newPassword}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 ${
+                  className={`text-black w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 ${
                     errors.newPassword ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Mínimo 8 caracteres"
@@ -350,7 +350,7 @@ export default function RecPass(){
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 ${
+                  className={`text-black w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 ${
                     errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Repite tu contraseña"

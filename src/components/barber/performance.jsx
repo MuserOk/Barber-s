@@ -47,7 +47,7 @@ export default function Performance({ barberData }) {
   // Lógica de Clock In/Out
   const handleClockInOut = async () => {
     const endpoint = isClockedIn ? '/barber/clock-out' : '/barber/clock-in';
-    const result = await clockExecute('post', endpoint);
+    const result = await clockExecute('post', endpoint, {});
 
     if (result.success) {
       alert(result.data.message);
